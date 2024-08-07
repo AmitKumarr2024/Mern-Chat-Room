@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide Password"],
     },
+    phone:{
+      type:Number,
+      required:[true,'Share your Phone Number']
+
+    },
     profile_pic: {
       type: String,
       default: "",
