@@ -6,17 +6,26 @@ import userDetailsJsonWebToken from "../../middleware/userDetailsJsonWebToken.js
 
 export const userRegister = async (req, res) => {
   try {
-    const { name, email, password,phone, profile_pic } = req.body;
+    const { name, email, password, phone, profile_pic } = req.body;
+console.log('password',password);
+console.log('name',name);
+console.log('email',email);
+
+    if (!password) {
+      return res.status(400).json({
+        message: "Password is required",
+        error: true,
+      });
+    }
 
     const userExist = await UserModel.findOne({ email });
     if (userExist) {
       return res.status(400).json({
-        message: "User already exist ",
-        success: true,
+        message: "User already exists",
+        success: false,
       });
     }
 
-    // bcrypt
     const salt = await bcryptjs.genSalt(10);
     const hashPassword = await bcryptjs.hash(password, salt);
 
@@ -37,13 +46,15 @@ export const userRegister = async (req, res) => {
       success: true,
     });
   } catch (error) {
+    console.error("Error:", error);
     res.status(500).json({
-      message: "Something went Wrong",
-      data: error,
+      message: "Something went wrong",
+      data: error.message,
       error: true,
     });
   }
 };
+
 
 export const userLogin = async (req, res) => {
   try {
