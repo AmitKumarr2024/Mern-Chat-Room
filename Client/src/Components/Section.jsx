@@ -91,7 +91,9 @@ function Section(props) {
     <div className="w-full h-full grid grid-cols-[50px,1fr] bg-white">
       <div className="bg-slate-100 w-12 h-full rounded-tr-lg rounded-br-lg py-5 text-slate-600 flex flex-col justify-between">
         <div>
+          {/* dummy */}
           <NavLink
+          to={'/'}
             className={({ isActive }) =>
               `w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded ${
                 isActive && "bg-slate-200"
@@ -101,6 +103,7 @@ function Section(props) {
           >
             <PiChatCircleTextFill size={30} />
           </NavLink>
+          {/* add frind  */}
           <div
             className="mt-1 w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             title="Add friend"
@@ -110,6 +113,7 @@ function Section(props) {
           </div>
         </div>
         <div className="flex flex-col items-center">
+          {/* profile pic */}
           <button
             className="w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             title={user.name ? user.name : "Profile"}
@@ -123,6 +127,7 @@ function Section(props) {
               userId={user?._id}
             />
           </button>
+          {/* logout */}
           <div
             className="w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             onClick={handleLogOut}
