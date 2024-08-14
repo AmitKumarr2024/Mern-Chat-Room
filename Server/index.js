@@ -11,12 +11,21 @@ import { app, server } from "./src/socket/index.js";
 app.use(express.json());
 app.use(cookieParser());
 
+const allowedOrigins = process.env.FRONTEND_URLS.split(','); // assuming FRONTEND_URLS is comma-separated
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URLS,
+    origin: function (origin, callback) {
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
+
 
 app.use("/api/users", UserRoute);
 
