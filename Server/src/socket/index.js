@@ -14,11 +14,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST"],
+    origin: process.env.FRONTEND_URLS.split(','), // Ensure FRONTEND_URLS is a comma-separated string
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Array of allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'],  // Array of allowed headers
   },
 });
+
 
 // is User is online or not?
 
