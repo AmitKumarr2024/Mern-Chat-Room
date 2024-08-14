@@ -42,18 +42,19 @@ const MessageSection = React.memo(() => {
   const currentMessage = useRef();
 
   useEffect(() => {
-    if (currentMessage.current) {
-      currentMessage.current.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    }
+    setTimeout(() => {
+      if (currentMessage.current) {
+        currentMessage.current.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }
+    }, 100); // Adjust the delay as needed
   }, [allMessage]);
-  console.log("all message:", allMessage);
-
   useEffect(() => {
     if (socketConnection) {
       socketConnection.emit("message-page", params?.userId);
+      socketConnection.emit("seen", params?.userId);
       socketConnection.on("message-user", (data) => {
         setUserData(data);
       });
@@ -183,12 +184,12 @@ const MessageSection = React.memo(() => {
   return (
     <div
       style={{ backgroundImage: `url(${Wallpapers})` }}
-      className="bg-no-repeat bg-cover bg-center"
+      className="bg-no-repeat bg-cover bg-center "
     >
       <header className="sticky top-0 h-20 bg-indigo-100 shadow-md flex items-center px-4">
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Link to={"/"} className="md:hidden block">
+            <Link to={"/"} className="lg:hidden block">
               <FaArrowLeft size={20} />
             </Link>
             <div className="flex-shrink-0">
@@ -221,100 +222,73 @@ const MessageSection = React.memo(() => {
         </div>
       </header>
 
-      <section className="h-[calc(100vh-145px)] overflow-x-hidden overflow-y-scroll hide_scrollbar bg-slate-300 bg-opacity-90 ">
+      <section className="h-[calc(100vh-145px)] overflow-x-hidden overflow-y-scroll hide_scrollbar your-scroll-container bg-slate-300 bg-opacity-90">
         {/* message */}
-        <div
-          className="flex flex-col gap-2 md:py4 py-3 px-3"
-          ref={currentMessage}
-        >
+        <div className="flex flex-col justify-between gap-2 px-3">
           {allMessage.map((msg, index) => {
+            const isLastMessage = index === allMessage.length - 1;
+
+            // Get the current message's date and the previous message's date
+            const currentMessageDate = moment(msg.createdAt).format("LL"); // Example: "August 14, 2024"
+            const previousMessageDate =
+              index > 0
+                ? moment(allMessage[index - 1].createdAt).format("LL")
+                : null;
+
+            // Check if the current message date is different from the previous one
+            const isNewDay = currentMessageDate !== previousMessageDate;
+
             return (
-              <div
-                key={msg._id + index}
-                className={`bg-white py-1 w-fit rounded-lg ${
-                  user?._id === msg.msgByUserId
-                    ? "ml-auto bg-emerald-600 text-slate-200"
-                    : ""
-                }`}
-              >
-                <div className="w-full max-w-sm mx-auto">
-                  {msg?.imageUrl && (
-                    <img
-                      src={msg?.imageUrl}
-                      className="w-full h-auto max-h-96 object-scale-down"
-                      alt="Message Image"
-                    />
-                  )}
+              <div key={msg._id} ref={isLastMessage ? currentMessage : null}>
+                {/* If it's a new day, display the date */}
+                {isNewDay && (
+                  <p className="text-center text-sm text-gray-500 font-semibold my-2">
+                    {moment(msg.createdAt).calendar(null, {
+                      sameDay: "[Today]", // Today
+                      lastDay: "[Yesterday]", // Yesterday
+                      lastWeek: "dddd", // Last Monday, etc.
+                      sameElse: "MMMM D, YYYY", // August 14, 2024, etc.
+                    })}
+                  </p>
+                )}
 
-                  {msg?.videoUrl && (
-                    <video
-                      src={msg?.videoUrl}
-                      className="w-full h-auto max-h-96 object-scale-down"
-                      controls
-                      muted
-                      autoPlay
-                    />
-                  )}
+                {/* Message content */}
+                <div
+                  className={` your-scroll-container py-1 w-fit rounded-lg ${
+                    user?._id === msg?.msgByUserId
+                      ? "ml-auto bg-indigo-400 text-slate-100 mb-2"
+                      : "bg-white"
+                  }`}
+                >
+                  <div className="w-full max-w-sm mx-auto">
+                    {msg?.imageUrl && (
+                      <img
+                        src={msg?.imageUrl}
+                        className="w-full h-auto max-h-96 object-scale-down"
+                        alt="Message Image"
+                      />
+                    )}
+
+                    {msg?.videoUrl && (
+                      <video
+                        src={msg?.videoUrl}
+                        className="w-full h-auto max-h-96 object-scale-down"
+                        controls
+                        muted
+                        autoPlay
+                      />
+                    )}
+                  </div>
+
+                  <p className="px-3">{msg.text}</p>
+                  <p className="text-xs font-medium text-gray-700 ml-auto w-fit px-1">
+                    {moment(msg.createdAt).format("LT")} {/* Time */}
+                  </p>
                 </div>
-
-                <p className="px-3 ">{msg.text}</p>
-                <p className="text-xs font-medium text-gray-700 ml-auto w-fit px-1">
-                  {moment(msg.createdAt).format("LT")}
-                </p>
               </div>
             );
           })}
         </div>
-
-        {/* loading and image and video */}
-        {loading ? (
-          <div className=" sticky bottom-0 h-full w-full flex justify-center items-center">
-            <Loading />
-          </div>
-        ) : message?.imageUrl ? (
-          <div className="sticky bottom-0 w-full h-full bg-slate-400 bg-opacity-30 flex justify-center items-center overflow-hidden">
-            <div
-              onClick={handleClearUploadImage}
-              className="w-fit p-2 absolute top-[50px] right-[350px] cursor-pointer hover:text-red-600"
-            >
-              <IoMdClose size={35} />
-            </div>
-            <div className="bg-white p-3">
-              <img
-                src={message?.imageUrl}
-                width={300}
-                height={600}
-                className="aspect-auto w-full h-full max-w-sm m-2 object-scale-down"
-                alt="Uploaded Image"
-              />
-            </div>
-          </div>
-        ) : null}
-        {/* video */}
-        {loading ? (
-          <div className="h-full w-full flex justify-center items-center">
-            <Loading />
-          </div>
-        ) : message?.videoUrl ? (
-          <div className="sticky bottom-0 w-full  h-full  bg-slate-400 bg-opacity-30 flex justify-center items-center overflow-hidden">
-            <div
-              onClick={handleCloseUploadVideo}
-              className="w-fit p-2 absolute top-[30px] right-[350px] cursor-pointer hover:text-red-600"
-            >
-              <IoMdClose size={35} />
-            </div>
-            <div className="bg-white p-3">
-              <video
-                src={message?.videoUrl}
-                className="aspect-auto w-full h-96 max-w-md mx-auto object-scale-down"
-                controls
-                muted
-                autoPlay
-                alt="Uploaded Video"
-              />
-            </div>
-          </div>
-        ) : null}
       </section>
 
       {/* below button */}

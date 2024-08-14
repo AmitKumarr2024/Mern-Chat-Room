@@ -6,6 +6,7 @@ import MessageSection from "../Components/Message-Section";
 import AuthLayout from "../Layout";
 import Login_page from "../Pages/Login_page";
 import ForgetPassword_page from "../Pages/ForgetPassword_page";
+import ProtectedRoute from '../helper/ProtectedRoute ' // Import the protected route component
 
 const router = createBrowserRouter([
   {
@@ -38,11 +39,19 @@ const router = createBrowserRouter([
       },
       {
         path: "",
-        element: <Home />,
+        element: (
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        ), // Protect the home route
         children: [
           {
             path: ":userId",
-            element: <MessageSection />,
+            element: (
+              <ProtectedRoute>
+                <MessageSection />
+              </ProtectedRoute>
+            ), // Protect the message section route
           },
         ],
       },

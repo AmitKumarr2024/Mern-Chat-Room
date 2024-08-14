@@ -19,9 +19,9 @@ const messageSchema = new mongoose.Schema(
       default: false,
     },
     msgByUserId: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Types.ObjectId,
       required: true,
-      ref: "User",
+      ref: "User", // Ensure this matches the User model name
     },
   },
   {
@@ -32,19 +32,19 @@ const messageSchema = new mongoose.Schema(
 const conversationSchema = new mongoose.Schema(
   {
     sender: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Types.ObjectId,
       required: true,
-      ref: "User", // Make sure this is correct
+      ref: "User", // Ensure this matches the User model name
     },
     receiver: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Types.ObjectId,
       required: true,
-      ref: "User", // Make sure this is correct
+      ref: "User", // Ensure this matches the User model name
     },
     messages: [
       {
-        type: mongoose.Schema.ObjectId,
-        ref: "Message", // Make sure this is correct
+        type: mongoose.Types.ObjectId,
+        ref: "Message", // Ensure this matches the Message model name
       },
     ],
   },
@@ -54,6 +54,6 @@ const conversationSchema = new mongoose.Schema(
 );
 
 const ConversationModel = mongoose.model("Conversation", conversationSchema);
-const MessageModel = mongoose.model("Message", messageSchema); // Fixed name
+const MessageModel = mongoose.model("Message", messageSchema);
 
 export { ConversationModel, MessageModel };

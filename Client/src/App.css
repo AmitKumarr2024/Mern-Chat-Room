@@ -99,3 +99,10 @@ body {
   transform: translate(-50%, -50%);
   animation: blink 1s infinite; /* Animation: blinking effect */
 }
+
+
+.your-scroll-container {
+  overflow-y: auto;
+  max-height: calc(100vh - yourHeaderHeight);
+  overflow-anchor: none; /* This can help in some scenarios */
+}
