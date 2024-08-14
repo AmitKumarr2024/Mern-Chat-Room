@@ -15,10 +15,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide Password"],
     },
-    phone:{
-      type:Number,
-      required:[true,'Share your Phone Number']
-
+    phone: {
+      type: Number,
+      required: [true, 'Share your Phone Number']
     },
     profile_pic: {
       type: String,
@@ -30,6 +29,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const UserModel = mongoose.model("user", userSchema);
+const UserModel = mongoose.model("User", userSchema);
 
 export default UserModel;
