@@ -1,10 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import Register from "../Pages/Register_page";
-import CheckingPage from "../Pages/Checking_page";
 import Home from "../Pages/Home_page";
 import MessageSection from "../Components/Message-Section";
 import AuthLayout from "../Layout";
+import Login_page from "../Pages/Login_page";
+import ForgetPassword_page from "../Pages/ForgetPassword_page";
 
 const router = createBrowserRouter([
   {
@@ -13,13 +14,27 @@ const router = createBrowserRouter([
     children: [
       {
         path: "register",
-        element:<AuthLayout><Register /></AuthLayout>
-        
+        element: (
+          <AuthLayout>
+            <Register />
+          </AuthLayout>
+        ),
       },
       {
-        path: "checking",
-        element:<AuthLayout><CheckingPage /></AuthLayout>
-    
+        path: "login",
+        element: (
+          <AuthLayout>
+            <Login_page />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "forget-password",
+        element: (
+          <AuthLayout>
+            <ForgetPassword_page />
+          </AuthLayout>
+        ),
       },
       {
         path: "",

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const messageShema = new mongoose.Schema(
+const messageSchema = new mongoose.Schema(
   {
     text: {
       type: String,
@@ -18,30 +18,33 @@ const messageShema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    msgByUserId: {
+      type: mongoose.Schema.ObjectId,
+      required: true,
+      ref: "User",
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// for conversation
-
 const conversationSchema = new mongoose.Schema(
   {
     sender: {
       type: mongoose.Schema.ObjectId,
       required: true,
-      ref: "user",
+      ref: "User", // Make sure this is correct
     },
     receiver: {
       type: mongoose.Schema.ObjectId,
       required: true,
-      ref: "user",
+      ref: "User", // Make sure this is correct
     },
     messages: [
       {
         type: mongoose.Schema.ObjectId,
-        ref: "message",
+        ref: "Message", // Make sure this is correct
       },
     ],
   },
@@ -51,6 +54,6 @@ const conversationSchema = new mongoose.Schema(
 );
 
 const ConversationModel = mongoose.model("Conversation", conversationSchema);
-const MessageModel = mongoose.model("message", messageShema);
+const MessageModel = mongoose.model("Message", messageSchema); // Fixed name
 
-export default { ConversationModel, messageShema };
+export { ConversationModel, MessageModel };
