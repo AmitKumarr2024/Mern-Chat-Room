@@ -1,19 +1,49 @@
-import { useEffect, useState } from 'react';
-import io from 'socket.io-client'; // Adjust import based on your setup
+import { useEffect } from "react";
+import { io } from "socket.io-client";
+import { useDispatch } from "react-redux";
+import { setOnlineUser, setSocketConnection } from "../";
 
 const useSocket = () => {
-  const [socket, setSocket] = useState(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const newSocket = io(); // Initialize socket connection
-    setSocket(newSocket);
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+      transports: ['websocket'], // Force WebSocket transport
+      auth: { token: localStorage.getItem("token") },
+      reconnectionAttempts: 10,  // Try to reconnect up to 10 times
+      reconnectionDelay: 5000,   // Wait 5 seconds between reconnection attempts
+    });
+
+    socketConnection.on("connect", () => {
+      console.log("WebSocket connected successfully");
+    });
+
+    socketConnection.on("disconnect", (reason) => {
+      if (reason === "io server disconnect") {
+        console.log("Server disconnected. Attempting reconnection...");
+        socketConnection.connect();
+      } else {
+        console.error("WebSocket disconnected due to:", reason);
+      }
+    });
+
+    socketConnection.on("connect_error", (error) => {
+      console.error("Connection error occurred:", error.message);
+    });
+
+    socketConnection.on("onlineUser", (data) => {
+      console.log("Online users:", data);
+      dispatch(setOnlineUser(data));
+    });
+
+    dispatch(setSocketConnection(socketConnection));
 
     return () => {
-      newSocket.disconnect(); // Clean up on unmount
+      if (socketConnection.connected) {
+        socketConnection.disconnect();
+      }
     };
-  }, []);
-
-  return socket;
+  }, [dispatch]);
 };
 
 export default useSocket;

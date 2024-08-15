@@ -58,6 +58,9 @@ function Home(props) {
       auth: {
         token: localStorage.getItem("token"),
       },
+      transports: ["websocket"],
+      pingInterval: 1000 * 60 * 5,
+      pingTimeout: 1000 * 60 * 3,
     });
 
     socketConnection.on("onlineUser", (data) => {
