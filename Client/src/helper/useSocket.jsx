@@ -16,6 +16,10 @@ const useSocket = (token) => {
       auth: { token },
     });
 
+    socketConnection.on("connect", () => {
+      console.log("Socket connected:", socketConnection.id);
+    });
+
     socketConnection.on("onlineUser", (data) => {
       console.log("Received online users data:", data);
       dispatch(setOnlineUser(data));

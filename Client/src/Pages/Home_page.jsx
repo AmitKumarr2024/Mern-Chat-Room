@@ -28,7 +28,9 @@ function Home(props) {
 
       console.log('User details data:', data);
 
-      dispatch(setUser(data.data));
+      if (data.success) {
+        dispatch(setUser(data.data));
+      }
 
       if (data.data.logout) {
         console.log("User is logged out. Redirecting to login...");
