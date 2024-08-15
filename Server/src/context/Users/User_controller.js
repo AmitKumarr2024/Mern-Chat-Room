@@ -53,6 +53,7 @@ export const userRegister = async (req, res) => {
   }
 };
 
+
 export const userLogin = async (req, res) => {
   try {
     const { password, email } = req.body;
@@ -86,10 +87,7 @@ export const userLogin = async (req, res) => {
     const tokenFromCookie = req.cookies.token;
     if (tokenFromCookie) {
       try {
-        const decodedToken = await jsonWebToken.verify(
-          tokenFromCookie,
-          process.env.JWT_SECRET_KEY
-        );
+        const decodedToken = await jwt.verify(tokenFromCookie, process.env.JWT_SECRET_KEY);
 
         // Check if the decoded token's ID matches the user ID
         if (decodedToken.id === user._id.toString()) {
@@ -108,12 +106,13 @@ export const userLogin = async (req, res) => {
       email: user.email,
     };
 
-    const token = jsonWebToken.sign(tokenData, process.env.JWT_SECRET_KEY);
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '1h' }); // Adjust expiration as needed
 
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-      sameSite: "strict", // Add sameSite attribute for better security
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Adjust for development and production
+      path: "/", // Ensure cookie path is set correctly
     };
 
     res.cookie("token", token, cookieOptions).status(200).json({
@@ -129,6 +128,7 @@ export const userLogin = async (req, res) => {
     });
   }
 };
+
 
 export const userDetails = async (req, res) => {
   try {
