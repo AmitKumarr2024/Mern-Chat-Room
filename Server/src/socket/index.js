@@ -166,7 +166,7 @@ io.on('connection', async (socket) => {
     });
 
   } catch (error) {
-    console.error('Connection error:', error);
+    console.error('Connection errors:', error);
     socket.disconnect();
   }
 
