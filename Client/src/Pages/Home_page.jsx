@@ -2,21 +2,17 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setUser,
-  logout,
-  setOnlineUser,
-  setSocketConnection,
-} from "../redux/userSlice"; // Ensure logout is imported
+import { setUser, logout } from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
-import io from "socket.io-client";
+import useSocket from '../helper/useSocket'; // Import the custom hook
 
 function Home(props) {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const token = localStorage.getItem("token"); // Retrieve token for socket connection
 
   console.log("Redux user state:", user);
 
@@ -47,32 +43,11 @@ function Home(props) {
   useEffect(() => {
     console.log("Component mounted. Fetching user details...");
     fetchUserDetails();
-  }, []); // Run only once on mount
+  }, [navigate, dispatch]); // Include navigate and dispatch in the dependency array
 
-  useEffect(() => {
-    console.log("Initializing socket connection...");
+  // Use the custom socket hook
+  useSocket(token);
 
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      auth: {
-        token: localStorage.getItem("token"),
-      },
-    });
-
-    socketConnection.on("onlineUser", (data) => {
-      console.log("Received online users data:", data);
-      dispatch(setOnlineUser(data));
-      console.log("Dispatching setOnlineUser with data:", data);
-    });
-
-    dispatch(setSocketConnection(socketConnection));
-
-    return () => {
-      console.log("Disconnecting socket...");
-      socketConnection.disconnect();
-    };
-  }, [dispatch]);
-
-  // console.log("location", location);
   const basePath = location.pathname === "/";
 
   return (
