@@ -54,42 +54,45 @@ function Home(props) {
 
   useEffect(() => {
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-  transports: ['polling'], // Force WebSocket transport
-  auth: {
-    token: localStorage.getItem("token"),
-  },
-});
-    socketConnection.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
+      transports: ['websocket'],
+      auth: {
+        token: localStorage.getItem("token"),
+      },
+      reconnectionAttempts: 5, // Attempt to reconnect 5 times
+      reconnectionDelay: 2000, // Wait 2 seconds between attempts
+    });
+  
+    socketConnection.on("connect", () => {
+      console.log("WebSocket connected successfully");
     });
   
     socketConnection.on("disconnect", (reason) => {
-      console.error("WebSocket disconnected:", reason);
+      if (reason === "io server disconnect") {
+        console.log("Server disconnected the WebSocket. Trying to reconnect...");
+        socketConnection.connect();
+      } else {
+        console.error("WebSocket disconnected due to:", reason);
+      }
+    });
+  
+    socketConnection.on("connect_error", (error) => {
+      console.error("Connection error occurred:", error.message);
     });
   
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
       dispatch(setOnlineUser(data));
     });
-
-
-    socketConnection.on("connect_error", (err) => {
-      // the reason of the error, for example "xhr poll error"
-      console.log(err.message);
-    
-      // some additional description, for example the status code of the initial HTTP response
-      console.log(err.description);
-    
-      // some additional context, for example the XMLHttpRequest object
-      console.log(err.context);
-    });
   
     dispatch(setSocketConnection(socketConnection));
   
     return () => {
-      socketConnection.disconnect();
+      if (socketConnection.connected) {
+        socketConnection.disconnect();
+      }
     };
-  }, []);
+  }, [dispatch]);
+  
 
   const basePath = location.pathname === "/";
 
