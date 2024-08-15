@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -16,6 +16,7 @@ function Home(props) {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
   console.log("redux user", user);
 
