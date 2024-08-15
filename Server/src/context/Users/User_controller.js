@@ -112,7 +112,7 @@ export const userLogin = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       path: "/", // Ensure the path is set correctly
-      domain:process.env.FRONTEND_URLS, // Adjust if necessary for your environment
+      domain: process.env.FRONTEND_URLS, // Adjust if necessary for your environment
     };
 
     res.cookie("token", token, cookieOptions).status(200).json({
@@ -128,6 +128,9 @@ export const userLogin = async (req, res) => {
     });
   }
 };
+
+
+
 
 export const userDetails = async (req, res) => {
   try {
