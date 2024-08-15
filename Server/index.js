@@ -7,27 +7,20 @@ import UserRoute from "./src/context/Users/User_router.js";
 import cookieParser from "cookie-parser";
 import { app, server } from "./src/socket/index.js";
 
-// Check if FRONTEND_URLS is properly set, otherwise fallback to an empty array
-const allowedOrigins = process.env.FRONTEND_URLS
-  ? process.env.FRONTEND_URLS.split(',')
-  : [];
 
-console.log("Allowed origins:", allowedOrigins);  // Debugging to check allowed origins
 
 app.use(express.json());
 app.use(cookieParser());
 
+app.use((req, res, next) => {
+  console.log('Origin:', req.headers.origin);
+  next();
+});
+
 // CORS middleware
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: process.env.FRONTEND_URLS,
     credentials: true,  // Allows cookies to be included in the requests
   })
 );
