@@ -19,20 +19,22 @@ function Home(props) {
   const fetchUserDetails = async () => {
     try {
       console.log("Fetching user details...");
-
+  
       const response = await fetch(UserApi.userDetails.url, {
         method: "GET",
         credentials: "include",
       });
       const data = await response.json();
-
+  
       console.log('User details data:', data);
-
+  
       if (data.success) {
-        dispatch(setUser(data.data));
+        dispatch(setUser(data.data)); // Ensure data.data contains user details
+      } else {
+        console.error('Failed to fetch user details:', data.message);
       }
-
-      if (data.data.logout) {
+  
+      if (data.data && data.data.logout) {
         console.log("User is logged out. Redirecting to login...");
         dispatch(logout());
         navigate("/login");
@@ -41,6 +43,7 @@ function Home(props) {
       console.error("Error fetching user details:", error);
     }
   };
+  
 
   useEffect(() => {
     console.log("Component mounted. Fetching user details...");
