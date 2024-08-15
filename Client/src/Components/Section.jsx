@@ -14,6 +14,9 @@ import { logout } from "../redux/userSlice";
 
 function Section(props) {
   const user = useSelector((state) => state?.user);
+
+  console.log("section user", user);
+
   const socketConnection = useSelector(
     (state) => state?.user?.socketConnection
   );
@@ -93,7 +96,7 @@ function Section(props) {
         <div>
           {/* dummy */}
           <NavLink
-          to={'/'}
+            to={"/"}
             className={({ isActive }) =>
               `w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded ${
                 isActive && "bg-slate-200"
