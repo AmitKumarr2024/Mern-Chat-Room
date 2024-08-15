@@ -10,8 +10,7 @@ const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  pingTimeout: 30000, // Default is 5000ms
-  pingInterval: 25000, // Default is 25000ms
+ 
   cors: {
     origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is correctly set
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
