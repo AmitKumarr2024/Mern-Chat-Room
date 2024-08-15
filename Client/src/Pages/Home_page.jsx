@@ -18,34 +18,40 @@ function Home(props) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log("redux user", user);
+  console.log("Redux user state:", user);
 
   const fetchUserDetails = async () => {
     try {
+      console.log("Fetching user details...");
+
       const response = await fetch(UserApi.userDetails.url, {
         method: "GET",
         credentials: "include",
       });
       const data = await response.json();
-      console.log('home',data.data);
-      
+
+      console.log('User details data:', data);
+
       dispatch(setUser(data.data));
 
       if (data.data.logout) {
+        console.log("User is logged out. Redirecting to login...");
         dispatch(logout());
         navigate("/login");
       }
-      console.log("user response", data);
     } catch (error) {
-      console.log("user details error:", error);
+      console.error("Error fetching user details:", error);
     }
   };
 
   useEffect(() => {
+    console.log("Component mounted. Fetching user details...");
     fetchUserDetails();
   }, []); // Run only once on mount
 
   useEffect(() => {
+    console.log("Initializing socket connection...");
+
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
       auth: {
         token: localStorage.getItem("token"),
@@ -53,17 +59,18 @@ function Home(props) {
     });
 
     socketConnection.on("onlineUser", (data) => {
-      console.log("online user",data);
+      console.log("Received online users data:", data);
       dispatch(setOnlineUser(data));
-      console.log("setOnlineUser",setOnlineUser(data));
-      
+      console.log("Dispatching setOnlineUser with data:", data);
     });
+
     dispatch(setSocketConnection(socketConnection));
 
     return () => {
+      console.log("Disconnecting socket...");
       socketConnection.disconnect();
     };
-  }, []);
+  }, [dispatch]);
 
   // console.log("location", location);
   const basePath = location.pathname === "/";

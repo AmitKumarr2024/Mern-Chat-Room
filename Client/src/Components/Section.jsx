@@ -14,24 +14,23 @@ import { logout } from "../redux/userSlice";
 
 function Section(props) {
   const user = useSelector((state) => state?.user);
-
-  console.log("section user", user);
-
-  const socketConnection = useSelector(
-    (state) => state?.user?.socketConnection
-  );
+  const socketConnection = useSelector((state) => state?.user?.socketConnection);
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [allUser, setAllUser] = useState([]);
   const [openSearchUser, setOpenSearchUser] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  console.log("section user", user);
+  console.log("socketConnection", socketConnection);
+
   useEffect(() => {
     if (socketConnection && user?._id) {
-      socketConnection.emit("sidebar", user?._id);
+      console.log("Emitting sidebar event with user ID:", user._id);
+      socketConnection.emit("sidebar", user._id);
 
       socketConnection.on("conversation", (data) => {
-        console.log("conversation", data);
+        console.log("Received conversation data:", data);
 
         const updatedConversations = data.reduce((acc, conversationUser) => {
           const senderId = conversationUser?.sender?._id;
@@ -74,22 +73,26 @@ function Section(props) {
           return acc;
         }, []);
 
+        console.log("Updated conversations:", updatedConversations);
         setAllUser(updatedConversations);
       });
     }
 
     return () => {
       if (socketConnection) {
+        console.log("Removing 'conversation' event listener");
         socketConnection.off("conversation");
       }
     };
   }, [socketConnection, user]);
 
   const handleLogOut = () => {
+    console.log("Logging out...");
     dispatch(logout());
     navigate("/login");
     localStorage.clear();
   };
+
   return (
     <div className="w-full h-full grid grid-cols-[50px,1fr] bg-white">
       <div className="bg-slate-100 w-12 h-full rounded-tr-lg rounded-br-lg py-5 text-slate-600 flex flex-col justify-between">
@@ -106,7 +109,7 @@ function Section(props) {
           >
             <PiChatCircleTextFill size={30} />
           </NavLink>
-          {/* add frind  */}
+          {/* add friend  */}
           <div
             className="mt-1 w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             title="Add friend"

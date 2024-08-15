@@ -42,12 +42,15 @@ function EditUserDetails({ onClose }) {
   }, [user, reset]);
 
   const handleOptionUploadPic = () => {
+    console.log("Click to upload photo");
     uploadPhotoRef.current.click();
   };
 
   const handleUploadPic = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    console.log("Selected file for upload:", file);
 
     try {
       const uploadPhoto = await uploadFile(file);
@@ -66,10 +69,14 @@ function EditUserDetails({ onClose }) {
       profile_pic: data.profile_pic,
     };
 
+    console.log("Form data to submit:", formattedData);
+
     try {
       const response = await axios.post(UserApi.userUpdate.url, formattedData, {
         withCredentials: true,
       });
+      console.log("Response from server:", response);
+
       if (response?.data?.success) {
         toast.success(response.data.message);
         dispatch(setUser(response.data.data));
@@ -78,6 +85,7 @@ function EditUserDetails({ onClose }) {
         toast.error(response?.data?.message || "Something went wrong!");
       }
     } catch (error) {
+      console.error("Error during form submission:", error);
       toast.error(
         error.response?.data?.message || "Error occurred during submission."
       );
@@ -134,12 +142,12 @@ function EditUserDetails({ onClose }) {
           <div className="flex items-center gap-4 my-4">
             <div>Photo:</div>
             <div className="my-1 flex flex-row justify-around gap-4 items-center">
-                <Avater
-                  width={55}
-                  height={55}
-                  imageUrl={imageUrl} // Use state for image URL
-                  name={user?.name}
-                />
+              <Avater
+                width={55}
+                height={55}
+                imageUrl={imageUrl} // Use state for image URL
+                name={user?.name}
+              />
               <label htmlFor="profile_pic">
                 <button className="font-bold border p-2 rounded border-black" type="button" onClick={handleOptionUploadPic}>
                   Change Photo

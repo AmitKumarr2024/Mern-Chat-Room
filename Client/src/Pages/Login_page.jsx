@@ -32,7 +32,8 @@ function Login_page(props) {
 
   const onSubmit = async (data) => {
     try {
-      // Use POST request instead of GET
+      console.log("Form submission data:", data); // Log form data
+
       const response = await axios.post(UserApi.userLogin.url, data, {
         headers: {
           "Content-Type": "application/json", // Ensure the server knows to expect JSON
@@ -40,25 +41,31 @@ function Login_page(props) {
         withCredentials: true, // Optional, if your server requires credentials
       });
 
+      console.log("API response:", response.data); // Log API response
+
       if (response.data.success) {
-        console.log("login",response.data.data);
+        console.log("Login successful, token received:", response.data.data);
         
         dispatch(setToken(response.data.data));
-        localStorage.setItem('token',response.data.data)
+        localStorage.setItem('token', response.data.data);
         toast.success(response.data.message);
-        console.log("details user", response.data.data);
+        console.log("User details:", response.data.data);
         navigate("/");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
       console.error(
         "Error submitting form:",
         error.response?.data || error.message
       );
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
   const email = watch("email");
+  const password = watch("password");
+
+  console.log("Email input value:", email); // Log email value
+  console.log("Password input value:", password); // Log password value
 
   return (
     <div className="mt-4">
