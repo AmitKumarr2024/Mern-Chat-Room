@@ -16,8 +16,7 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action) => {
-      // Destructure action.payload directly for clarity
-      const { _id, email, name, phone, profile_pic } = action.payload;
+      const { _id = "", email = "", name = "", phone = "", profile_pic = "" } = action.payload || {};
       state._id = _id;
       state.email = email;
       state.name = name;
@@ -25,7 +24,7 @@ export const userSlice = createSlice({
       state.profile_pic = profile_pic;
     },
     setToken: (state, action) => {
-      state.token = action.payload;
+      state.token = action.payload || "";
     },
     logout: (state) => {
       state._id = "";
@@ -37,15 +36,14 @@ export const userSlice = createSlice({
       state.socketConnection = null; // Reset to null instead of an empty string
     },
     setOnlineUser: (state, action) => {
-      state.onlineUser = action.payload;
+      state.onlineUser = action.payload || [];
     },
     setSocketConnection: (state, action) => {
-      state.socketConnection = action.payload;
+      state.socketConnection = action.payload || null;
     },
   },
 });
 
-// Action creators are generated for each case reducer function
 export const { setUser, setToken, logout, setOnlineUser, setSocketConnection } = userSlice.actions;
 
 export default userSlice.reducer;
