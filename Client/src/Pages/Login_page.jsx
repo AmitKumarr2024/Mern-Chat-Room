@@ -32,8 +32,6 @@ function Login_page(props) {
 
   const onSubmit = async (data) => {
     try {
-      console.log("Form submission data:", data); // Log form data
-
       const response = await axios.post(UserApi.userLogin.url, data, {
         headers: {
           "Content-Type": "application/json", // Ensure the server knows to expect JSON
@@ -41,22 +39,13 @@ function Login_page(props) {
         withCredentials: true, // Optional, if your server requires credentials
       });
 
-      console.log("API response:", response.data); // Log API response
-
       if (response.data.success) {
-        console.log("Login successful, token received:", response.data.data);
-        
         dispatch(setToken(response.data.data));
         localStorage.setItem('token', response.data.data);
         toast.success(response.data.message);
-        console.log("User details:", response.data.data);
         navigate("/");
       }
     } catch (error) {
-      console.error(
-        "Error submitting form:",
-        error.response?.data || error.message
-      );
       toast.error(error.response?.data?.message || error.message);
     }
   };
@@ -64,28 +53,25 @@ function Login_page(props) {
   const email = watch("email");
   const password = watch("password");
 
-  console.log("Email input value:", email); // Log email value
-  console.log("Password input value:", password); // Log password value
-
   return (
     <div className="mt-4">
-      <div className=" h-full  min-w-[70vw] max-w-xl flex flex-col justify-between gap-1 overflow-hidden p-4 mx-auto">
+      <div className="h-full min-w-[70vw] max-w-xl flex flex-col justify-between gap-1 overflow-hidden p-4 mx-auto">
         <h1 className="text-2xl flex flex-col uppercase font-bold text-center mb-1">
           Login page
         </h1>
 
-        <div className="min-h-[35vh] h-full min-w-[300px] flex-col md:flex-row  flex justify-center items-center gap-6 px-16">
-          <section className="w-full h-full ">
+        <div className="min-h-[35vh] h-full min-w-[300px] flex-col md:flex-row flex justify-center items-center gap-6 px-16">
+          <section className="w-full h-full">
             <img
               src={loginpic}
-              className="w-full object-scale-down rounded-md mix-blend-multiply animate-pulse  transition-shadow"
+              className="w-full object-scale-down rounded-md mix-blend-multiply animate-pulse transition-shadow"
               alt="Register image"
             />
           </section>
           <section className="w-full h-full p-6 rounded-xl shadow-xl bg-zinc-300">
             <form onSubmit={handleSubmit(onSubmit)}>
               {/* Email */}
-              <div className="flex flex-col gap-1 ">
+              <div className="flex flex-col gap-1">
                 <label htmlFor="email">Email</label>
                 <input
                   {...register("email", {
@@ -178,7 +164,7 @@ function Login_page(props) {
         </div>
 
         <p className="text-center my-2 text-xl font-semibold">
-          You have a account ?{" "}
+          You have an account?{" "}
           <Link to={"/register"} className="font-bold text-blue-500">
             Register
           </Link>
