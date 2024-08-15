@@ -2,58 +2,70 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, logout } from "../redux/userSlice";
+import {
+  setUser,
+  logout,
+  setOnlineUser,
+  setSocketConnection,
+} from "../redux/userSlice"; // Ensure logout is imported
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
-import useSocket from '../helper/useSocket'; // Import the custom hook
+import io from "socket.io-client";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem("token"); // Retrieve token for socket connection
 
-  console.log("Redux user state:", user);
+  console.log("redux user", user);
 
   const fetchUserDetails = async () => {
     try {
-      console.log("Fetching user details...");
-  
       const response = await fetch(UserApi.userDetails.url, {
         method: "GET",
         credentials: "include",
       });
       const data = await response.json();
-  
-      console.log('User details data:', data);
-  
-      if (data.success) {
-        dispatch(setUser(data.data)); // Ensure data.data contains user details
-      } else {
-        console.error('Failed to fetch user details:', data.message);
-      }
-  
-      if (data.data && data.data.logout) {
-        console.log("User is logged out. Redirecting to login...");
+      console.log('home',data.data);
+      
+      dispatch(setUser(data.data));
+
+      if (data.data.logout) {
         dispatch(logout());
         navigate("/login");
       }
+      console.log("user response", data);
     } catch (error) {
-      console.error("Error fetching user details:", error);
+      console.log("user details error:", error);
     }
   };
-  
-  
 
   useEffect(() => {
-    console.log("Component mounted. Fetching user details...");
     fetchUserDetails();
-  }, [navigate, dispatch]); // Include navigate and dispatch in the dependency array
+  }, []); // Run only once on mount
 
-  // Use the custom socket hook
-  useSocket(token);
+  useEffect(() => {
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+      auth: {
+        token: localStorage.getItem("token"),
+      },
+    });
 
+    socketConnection.on("onlineUser", (data) => {
+      console.log("online user",data);
+      dispatch(setOnlineUser(data));
+      console.log("setOnlineUser",setOnlineUser(data));
+      
+    });
+    dispatch(setSocketConnection(socketConnection));
+
+    return () => {
+      socketConnection.disconnect();
+    };
+  }, []);
+
+  // console.log("location", location);
   const basePath = location.pathname === "/";
 
   return (
