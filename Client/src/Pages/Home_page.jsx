@@ -40,7 +40,7 @@ function Home(props) {
       // Handle logout if session expired
       if (data.data.logout) {
         dispatch(logout());
-        navigate("/email");
+        navigate("/login");
       }
 
       console.log("User details response:", data);
