@@ -21,7 +21,7 @@ function Section(props) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  console.log("section user", user);
+  console.log("section users", user);
   console.log("socketConnection", socketConnection);
 
   useEffect(() => {
