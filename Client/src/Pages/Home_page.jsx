@@ -99,7 +99,7 @@ function Home(props) {
           <img src={Logo} width={150} className="rounded-3xl" alt="App Logo" />
         </div>
         <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
-          Explore User to Send Messages.
+          Explore User to Send Message.
         </p>
       </div>
     </div>
