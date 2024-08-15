@@ -10,7 +10,6 @@ import {
 } from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
-import io from "socket.io-client";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
@@ -18,29 +17,20 @@ function Home(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-
-  
-
   console.log("redux user", user);
 
   const fetchUserDetails = async () => {
     try {
       const response = await fetch(UserApi.userDetails.url, {
-        credentials: "include", // Ensure this is correctly spelled and used
+        credentials: "include",
       });
 
-      // Check if response is ok
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Parse response data
       const data = await response.json();
-
-      // Set user details in Redux
       dispatch(setUser(data.data));
-
-      
 
       console.log("User details response:", data);
     } catch (error) {
@@ -53,31 +43,37 @@ function Home(props) {
   }, []); // Run only once on mount
 
   useEffect(() => {
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      auth: {
-        token: localStorage.getItem("token"),
-      },
-    });
-  
-    socketConnection.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
-    });
-  
-    socketConnection.on("disconnect", (reason) => {
-      console.error("WebSocket disconnected:", reason);
-    });
-  
-    socketConnection.on("onlineUser", (data) => {
-      console.log("Online users:", data);
-      dispatch(setOnlineUser(data));
-    });
-  
-    dispatch(setSocketConnection(socketConnection));
-  
-    return () => {
-      socketConnection.disconnect();
+    const address = import.meta.env.VITE_REACT_APP_BACKEND_URL;
+    const socket = new WebSocket(address);
+
+    socket.onopen = () => {
+      console.log("WebSocket connection established");
     };
-  }, []);
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "onlineUser") {
+        console.log("Online users:", data.users);
+        dispatch(setOnlineUser(data.users));
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    socket.onclose = (event) => {
+      console.log("WebSocket connection closed:", event);
+    };
+
+    dispatch(setSocketConnection(socket));
+
+    return () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
+  }, [dispatch]);
 
   const basePath = location.pathname === "/";
 
