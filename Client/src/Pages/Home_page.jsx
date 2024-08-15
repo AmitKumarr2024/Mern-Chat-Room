@@ -54,51 +54,43 @@ function Home(props) {
 
   useEffect(() => {
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      transports: ['websocket'], // Force WebSocket transport
-      auth: {
-        token: localStorage.getItem("token"),
-      },
-    });
-  
-    // Handle connection errors
+  transports: ['websocket'], // Force WebSocket transport
+  auth: {
+    token: localStorage.getItem("token"),
+  },
+});
     socketConnection.on("connect_error", (error) => {
       console.error("WebSocket connection error:", error);
     });
   
-    // Handle disconnections
     socketConnection.on("disconnect", (reason) => {
       console.error("WebSocket disconnected:", reason);
-      if (reason === "io server disconnect") {
-        // Attempt to reconnect if the server disconnected
-        console.log("Reconnecting...");
-        socketConnection.connect();
-      }
     });
   
-    // Handle receiving online user data
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
-      dispatch(setOnlineUser(data)); // Dispatch to Redux to update online users
+      dispatch(setOnlineUser(data));
     });
-  
-    // Additional handling for connect_error with detailed error logs
+
+
     socketConnection.on("connect_error", (err) => {
-      console.log("Connection error message:", err.message);
-      console.log("Error description:", err.description);
-      console.log("Error context:", err.context);
+      // the reason of the error, for example "xhr poll error"
+      console.log(err.message);
+    
+      // some additional description, for example the status code of the initial HTTP response
+      console.log(err.description);
+    
+      // some additional context, for example the XMLHttpRequest object
+      console.log(err.context);
     });
   
-    // Store the socket connection in Redux
     dispatch(setSocketConnection(socketConnection));
   
-    // Cleanup on component unmount
     return () => {
-      if (socketConnection.connected) {
-        socketConnection.disconnect();
-      }
+      socketConnection.disconnect();
     };
-  }, [dispatch]);
-  
+  }, []);
+
   const basePath = location.pathname === "/";
 
   return (
