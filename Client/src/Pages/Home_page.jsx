@@ -54,7 +54,7 @@ function Home(props) {
   }, []); // Run only once on mount
 
   useEffect(() => {
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL_SOCKET, {
+    const socketConnection = io('wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket', {
       auth: {
         token: localStorage.getItem("token"),
       },
