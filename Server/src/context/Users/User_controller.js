@@ -87,7 +87,7 @@ export const userLogin = async (req, res) => {
     const tokenFromCookie = req.cookies.token;
     if (tokenFromCookie) {
       try {
-        const decodedToken = await jwt.verify(tokenFromCookie, process.env.JWT_SECRET_KEY);
+        const decodedToken = jwt.verify(tokenFromCookie, process.env.JWT_SECRET_KEY);
 
         // Check if the decoded token's ID matches the user ID
         if (decodedToken.id === user._id.toString()) {
@@ -96,7 +96,6 @@ export const userLogin = async (req, res) => {
             .json({ message: "You are already logged in", error: true });
         }
       } catch (err) {
-        // If the token is invalid or expired, log the error but don't return it
         console.error("Token verification error:", err.message);
       }
     }
@@ -106,13 +105,14 @@ export const userLogin = async (req, res) => {
       email: user.email,
     };
 
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '1h' }); // Adjust expiration as needed
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Adjust for development and production
-      path: "/", // Ensure cookie path is set correctly
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      path: "/", // Ensure the path is set correctly
+      domain:process.env.FRONTEND_URLS, // Adjust if necessary for your environment
     };
 
     res.cookie("token", token, cookieOptions).status(200).json({
@@ -128,7 +128,6 @@ export const userLogin = async (req, res) => {
     });
   }
 };
-
 
 export const userDetails = async (req, res) => {
   try {
