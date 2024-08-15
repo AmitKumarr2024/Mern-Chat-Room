@@ -41,6 +41,8 @@ function Login_page(props) {
       });
 
       if (response.data.success) {
+        console.log("login",response.data.data);
+        
         dispatch(setToken(response.data.data));
         localStorage.setItem('token',response.data.data)
         toast.success(response.data.message);

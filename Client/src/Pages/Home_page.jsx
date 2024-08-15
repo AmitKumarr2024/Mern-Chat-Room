@@ -27,6 +27,8 @@ function Home(props) {
         credentials: "include",
       });
       const data = await response.json();
+      console.log('home',data.data);
+      
       dispatch(setUser(data.data));
 
       if (data.data.logout) {
