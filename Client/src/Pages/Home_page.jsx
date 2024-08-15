@@ -18,59 +18,44 @@ function Home(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log("redux user", user);
-
+  console.log("user", user);
   const fetchUserDetails = async () => {
     try {
       const response = await fetch(UserApi.userDetails.url, {
         credentials: "include", // Ensure this is correctly spelled and used
       });
 
-      // Check if response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      dispatch(setUser(response.data.data));
+
+      if (response.data.data.logout) {
+        dispatch(logout());
+        navigate("/email");
       }
-
-      // Parse response data
-      const data = await response.json();
-
-      // Set user details in Redux
-      dispatch(setUser(data.data));
-
-      
-
-      console.log("User details response:", data);
+      console.log("current user Details", response);
     } catch (error) {
-      console.log("Error fetching user details:", error);
+      console.log("error", error);
     }
   };
 
   useEffect(() => {
     fetchUserDetails();
-  }, []); // Run only once on mount
+  }, []);
 
+  /***socket connection */
   useEffect(() => {
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+    const socketConnection = io(process.env.REACT_APP_BACKEND_URL, {
       auth: {
         token: localStorage.getItem("token"),
       },
     });
-  
-    socketConnection.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
-    });
-  
-    socketConnection.on("disconnect", (reason) => {
-      console.error("WebSocket disconnected:", reason);
-    });
-  
+
     socketConnection.on("onlineUser", (data) => {
-      console.log("Online users:", data);
+      console.log(data);
       dispatch(setOnlineUser(data));
     });
-  
+
     dispatch(setSocketConnection(socketConnection));
-  
+
     return () => {
       socketConnection.disconnect();
     };
