@@ -2,7 +2,12 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, logout, setOnlineUser, setSocketConnection } from "../redux/userSlice"; 
+import {
+  setUser,
+  logout,
+  setOnlineUser,
+  setSocketConnection,
+} from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
 import io from "socket.io-client";
@@ -16,38 +21,24 @@ function Home(props) {
 
   const fetchUserDetails = async () => {
     try {
-      const token = localStorage.getItem("token"); // Get token from localStorage
-      if (!token) {
-        console.log("No token found");
-        return;
-      }
-  
       const response = await fetch(UserApi.userDetails.url, {
-        method: "GET",
-        credentials: "include", // If session is cookie-based
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Send token in Authorization header
-        },
+        credentials: true, // If session is cookie-based
       });
-  
-      const data = await response.json();
-      console.log("Fetched user data:", data.data);
-  
+
       // Set user details in Redux
-      dispatch(setUser(data.data));
-  
+      dispatch(setUser(response.data.data));
+
       // Handle logout if session expired
-      if (data.data?.logout) {
+      if (response.data.data.logout) {
         dispatch(logout());
+        navigate("/email");
       }
-  
-      console.log("User details response:", data);
+
+      console.log("User details response:", response);
     } catch (error) {
       console.log("Error fetching user details:", error);
     }
   };
-  
 
   useEffect(() => {
     fetchUserDetails();
@@ -93,12 +84,7 @@ function Home(props) {
         }`}
       >
         <div>
-          <img
-            src={Logo}
-            width={150}
-            className="rounded-3xl"
-            alt="App Logo"
-          />
+          <img src={Logo} width={150} className="rounded-3xl" alt="App Logo" />
         </div>
         <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
           Explore User to Send Messages.
