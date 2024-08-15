@@ -105,7 +105,7 @@ export const userLogin = async (req, res) => {
       email: user.email,
     };
 
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
 
     const cookieOptions = {
       httpOnly: true,
