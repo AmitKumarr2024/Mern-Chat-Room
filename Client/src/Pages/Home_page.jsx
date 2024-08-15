@@ -37,11 +37,7 @@ function Home(props) {
       // Set user details in Redux
       dispatch(setUser(data.data));
 
-      // Handle logout if session expired
-      if (data.data.logout) {
-        dispatch(logout());
-        navigate("/login");
-      }
+      
 
       console.log("User details response:", data);
     } catch (error) {
