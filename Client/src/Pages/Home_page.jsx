@@ -54,7 +54,7 @@ function Home(props) {
   }, []); // Run only once on mount
 
   useEffect(() => {
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL_SOCKET, {
       auth: {
         token: localStorage.getItem("token"),
       },
