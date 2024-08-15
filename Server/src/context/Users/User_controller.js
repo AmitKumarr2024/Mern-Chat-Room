@@ -2,7 +2,7 @@ import { token } from "morgan";
 import UserModel from "./User_model.js";
 import bcryptjs from "bcrypt";
 import jwt from "jsonwebtoken";
-import userDetailsjwt from "../../middleware/userDetailsjwt.js";
+import userDetailsJsonWebToken from "../../middleware/userDetailsJsonWebToken.js";
 
 export const userRegister = async (req, res) => {
   try {
@@ -87,7 +87,7 @@ export const userLogin = async (req, res) => {
     const tokenFromCookie = req.cookies.token;
     if (tokenFromCookie) {
       try {
-        const decodedToken = await jwt.verify(tokenFromCookie, process.env.jwt_SECRET_KEY);
+        const decodedToken = await jwt.verify(tokenFromCookie, process.env.JWT_SECRET_KEY);
 
         // Check if the decoded token's ID matches the user ID
         if (decodedToken.id === user._id.toString()) {
@@ -106,7 +106,7 @@ export const userLogin = async (req, res) => {
       email: user.email,
     };
 
-    const token = jwt.sign(tokenData, process.env.jwt_SECRET_KEY, { expiresIn: '1h' }); // Adjust expiration as needed
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '1h' }); // Adjust expiration as needed
 
     const cookieOptions = {
       httpOnly: true,
@@ -134,7 +134,7 @@ export const userDetails = async (req, res) => {
   try {
     const token = req.cookies.token;
 
-    const userDetails = await userDetailsjwt(token);
+    const userDetails = await userDetailsJsonWebToken(token);
 
     return res.status(200).json({
       message: "Request completed successfully",
@@ -187,7 +187,7 @@ export const updateUser = async (req, res) => {
     const { name, profile_pic, phone, email } = req.body;
     console.log("Received data:", { name, profile_pic, phone, email }); // Log received data
 
-    const user = await userDetailsjwt(token);
+    const user = await userDetailsJsonWebToken(token);
     if (!user) {
       return res.status(404).json({
         message: "User not found",
