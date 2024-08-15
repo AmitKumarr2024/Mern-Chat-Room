@@ -13,6 +13,9 @@ const userDetailsJsonWebToken = async (token) => {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
+    console.log("decoded",decoded);
+    
+
     if (!decoded || !decoded.id) {
       // Handle the case where the token is invalid or doesn't contain the required fields
       return {
