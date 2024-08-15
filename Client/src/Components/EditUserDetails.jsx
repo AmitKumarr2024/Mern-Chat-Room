@@ -31,7 +31,6 @@ function EditUserDetails({ onClose }) {
   });
 
   useEffect(() => {
-    console.log("User data on load:", user);
     // Update image URL state and reset form values
     setImageUrl(user?.profile_pic || "");
     reset({
@@ -42,7 +41,6 @@ function EditUserDetails({ onClose }) {
   }, [user, reset]);
 
   const handleOptionUploadPic = () => {
-    console.log("Click to upload photo");
     uploadPhotoRef.current.click();
   };
 
@@ -50,15 +48,12 @@ function EditUserDetails({ onClose }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    console.log("Selected file for upload:", file);
-
     try {
       const uploadPhoto = await uploadFile(file);
       setValue("profile_pic", uploadPhoto.url);
       setImageUrl(uploadPhoto.url);
-      console.log("Uploaded image URL:", uploadPhoto.url);
     } catch (error) {
-      console.error("Error uploading file:", error);
+      toast.error("Error uploading file.");
     }
   };
 
@@ -69,13 +64,10 @@ function EditUserDetails({ onClose }) {
       profile_pic: data.profile_pic,
     };
 
-    console.log("Form data to submit:", formattedData);
-
     try {
       const response = await axios.post(UserApi.userUpdate.url, formattedData, {
         withCredentials: true,
       });
-      console.log("Response from server:", response);
 
       if (response?.data?.success) {
         toast.success(response.data.message);
@@ -85,10 +77,7 @@ function EditUserDetails({ onClose }) {
         toast.error(response?.data?.message || "Something went wrong!");
       }
     } catch (error) {
-      console.error("Error during form submission:", error);
-      toast.error(
-        error.response?.data?.message || "Error occurred during submission."
-      );
+      toast.error("Error occurred during submission.");
     }
   };
 

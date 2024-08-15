@@ -44,7 +44,6 @@ const MessageSection = React.memo(() => {
   useEffect(() => {
     setTimeout(() => {
       if (currentMessage.current) {
-        console.log("Scrolling to the latest message...");
         currentMessage.current.scrollIntoView({
           behavior: "smooth",
           block: "end",
@@ -55,17 +54,14 @@ const MessageSection = React.memo(() => {
 
   useEffect(() => {
     if (socketConnection) {
-      console.log("Socket connection established. Emitting events...");
       socketConnection.emit("message-page", params?.userId);
       socketConnection.emit("seen", params?.userId);
       
       socketConnection.on("message-user", (data) => {
-        console.log("Received user data:", data);
         setUserData(data);
       });
 
       socketConnection.on("message", (data) => {
-        console.log("Received messages:", data);
         setAllMessage(data);
       });
     }
@@ -73,12 +69,10 @@ const MessageSection = React.memo(() => {
 
   const handleToggleAttachment = () => {
     setOpenAttachment((prev) => !prev);
-    console.log("Attachment menu toggled. Open status:", !openAttachment);
   };
 
   const handleUploadVideo = useCallback(async (e) => {
     const file = e.target.files[0];
-    console.log("Selected video file:", file);
 
     const validVideoTypes = [
       "video/mp4",
@@ -90,20 +84,17 @@ const MessageSection = React.memo(() => {
 
     if (!validVideoTypes.includes(file.type)) {
       alert("Invalid file type. Please select a valid video file.");
-      console.warn("Invalid video file type:", file.type);
       return;
     }
 
     if (file.size > maxSize) {
       alert("File size too large. Please select a file under 10 MB.");
-      console.warn("File size too large:", file.size);
       return;
     }
 
     try {
       setLoading(true);
       const uploadPhoto = await uploadFile(file);
-      console.log("Uploaded video URL:", uploadPhoto.url);
       
       setMessage((prev) => ({
         ...prev,
@@ -111,7 +102,6 @@ const MessageSection = React.memo(() => {
       }));
       setOpenAttachment(false);
     } catch (error) {
-      console.error("Upload error:", error);
       alert("Failed to upload video. Please try again.");
     } finally {
       setLoading(false);
@@ -119,7 +109,6 @@ const MessageSection = React.memo(() => {
   }, []);
 
   const handleCloseUploadVideo = () => {
-    console.log("Closing video upload. Resetting video URL...");
     setMessage((prev) => ({
       ...prev,
       videoUrl: "",
@@ -129,18 +118,16 @@ const MessageSection = React.memo(() => {
   const handleUploadImage = useCallback(async (e) => {
     setLoading(true);
     const file = e.target.files[0];
-    console.log("Selected image file:", file);
 
     try {
       const uploadPhoto = await uploadFile(file);
-      console.log("Uploaded Image URL:", uploadPhoto.url);
 
       setMessage((prev) => ({
         ...prev,
         imageUrl: uploadPhoto.url,
       }));
     } catch (error) {
-      console.error("Error uploading image:", error);
+      alert("Error uploading image. Please try again.");
     } finally {
       setLoading(false);
       setOpenAttachment(false);
@@ -148,7 +135,6 @@ const MessageSection = React.memo(() => {
   }, []);
 
   const handleClearUploadImage = () => {
-    console.log("Clearing uploaded image...");
     setMessage((prev) => ({
       ...prev,
       image: null,
@@ -159,7 +145,6 @@ const MessageSection = React.memo(() => {
     const { name, value } = e.target;
 
     setMessage((prev) => {
-      console.log("Updating message text:", value);
       return {
         ...prev,
         text: value,
@@ -170,11 +155,8 @@ const MessageSection = React.memo(() => {
   const handleSendMessage = (e) => {
     e.preventDefault();
 
-    console.log("Sending message:", message);
-
     if (message?.text || message?.imageUrl || message?.videoUrl) {
       if (socketConnection) {
-        console.log("Emitting new message to socket...");
         socketConnection.emit("new-message", {
           sender: user?._id,
           receiver: params?.userId,
@@ -190,8 +172,6 @@ const MessageSection = React.memo(() => {
           videoUrl: "",
         });
       }
-    } else {
-      console.warn("No content to send");
     }
   };
 
@@ -299,8 +279,8 @@ const MessageSection = React.memo(() => {
                         <video
                           className="w-32 h-32 object-cover rounded-lg"
                           controls
+                          src={msg?.videoUrl}
                         >
-                          <source src={msg?.videoUrl} type="video/mp4" />
                           Your browser does not support the video tag.
                         </video>
                       )}
@@ -313,12 +293,64 @@ const MessageSection = React.memo(() => {
         </div>
       </section>
 
-      <div className="fixed bottom-0 w-full bg-white py-2 px-4 shadow-md">
-        <form className="flex items-center gap-2" onSubmit={handleSendMessage}>
+      <footer className="sticky bottom-0 bg-indigo-100 border-t border-gray-200 flex items-center px-4 py-2">
+        {openAttachment && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-10 flex items-center justify-center">
+            <div className="bg-white p-4 rounded shadow-md">
+              <div className="flex flex-col gap-2">
+                <label>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={handleUploadVideo}
+                  />
+                  <button className="flex items-center gap-1">
+                    <IoVideocam />
+                    <span>Upload Video</span>
+                  </button>
+                </label>
+                {message.videoUrl && (
+                  <div className="relative">
+                    <video
+                      className="w-32 h-32 object-cover rounded-lg"
+                      controls
+                      src={message.videoUrl}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                    <button
+                      className="absolute top-1 right-1"
+                      onClick={handleCloseUploadVideo}
+                    >
+                      <IoMdClose />
+                    </button>
+                  </div>
+                )}
+                <label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleUploadImage}
+                  />
+                  <button className="flex items-center gap-1">
+                    <IoImageSharp />
+                    <span>Upload Image</span>
+                  </button>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+        <form
+          onSubmit={handleSendMessage}
+          className="flex w-full items-center gap-2"
+        >
           <button
             type="button"
             onClick={handleToggleAttachment}
-            className="p-2 text-gray-600"
+            className="flex items-center justify-center p-2 bg-gray-200 rounded-full"
           >
             <RiAttachment2 />
           </button>
@@ -327,79 +359,17 @@ const MessageSection = React.memo(() => {
             name="text"
             value={message.text}
             onChange={handleOnChangeText}
-            placeholder="Type a message"
+            placeholder="Type a message..."
             className="w-full p-2 border rounded-lg"
           />
-          {message.imageUrl && (
-            <div className="relative">
-              <img
-                src={message.imageUrl}
-                alt="Selected"
-                className="w-32 h-32 object-cover rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={handleClearUploadImage}
-                className="absolute top-0 right-0 p-1 bg-red-600 text-white rounded-full"
-              >
-                <IoMdClose />
-              </button>
-            </div>
-          )}
-          {message.videoUrl && (
-            <div className="relative">
-              <video
-                className="w-32 h-32 object-cover rounded-lg"
-                controls
-              >
-                <source src={message.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <button
-                type="button"
-                onClick={handleCloseUploadVideo}
-                className="absolute top-0 right-0 p-1 bg-red-600 text-white rounded-full"
-              >
-                <IoMdClose />
-              </button>
-            </div>
-          )}
           <button
             type="submit"
-            className="p-2 bg-blue-600 text-white rounded-full"
+            className="p-2 bg-blue-500 text-white rounded-full"
           >
             <RiSendPlane2Line />
           </button>
         </form>
-
-        {/* Attachment menu */}
-        {openAttachment && (
-          <div className="flex gap-2 mt-2">
-            <label className="p-2 cursor-pointer text-blue-600 flex flex-col items-center">
-              <IoImageSharp size={25} />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleUploadImage}
-                className="hidden"
-              />
-              Image
-            </label>
-            <label className="p-2 cursor-pointer text-blue-600 flex flex-col items-center">
-              <IoVideocam size={25} />
-              <input
-                type="file"
-                accept="video/*"
-                onChange={handleUploadVideo}
-                className="hidden"
-              />
-              Video
-            </label>
-          </div>
-        )}
-
-        {loading && <Loading />}
-      </div>
+      </footer>
     </div>
   );
 });

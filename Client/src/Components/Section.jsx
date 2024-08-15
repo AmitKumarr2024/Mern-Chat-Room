@@ -21,27 +21,19 @@ function Section(props) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  console.log("section users", user);
-  console.log("socketConnection", socketConnection);
-
   useEffect(() => {
     if (socketConnection && user?._id) {
-      console.log("Emitting sidebar event with user ID:", user._id);
       socketConnection.emit("sidebar", user._id);
 
       socketConnection.on("conversation", (data) => {
-        console.log("Received conversation data:", data);
-
         const updatedConversations = data.reduce((acc, conversationUser) => {
           const senderId = conversationUser?.sender?._id;
           const receiverId = conversationUser?.receiver?._id;
 
           if (!senderId || !receiverId) return acc;
 
-          // Create a unique key for each sender-receiver pair
           const pairKey = [senderId, receiverId].sort().join("-");
 
-          // Find if this pair already exists in the state
           const existingIndex = acc.findIndex((conv) => {
             const existingKey = [conv.sender._id, conv.receiver._id]
               .sort()
@@ -50,7 +42,6 @@ function Section(props) {
           });
 
           if (existingIndex > -1) {
-            // Update existing conversation with the latest message
             acc[existingIndex] = {
               ...acc[existingIndex],
               ...conversationUser,
@@ -60,7 +51,6 @@ function Section(props) {
                   : conversationUser.sender,
             };
           } else {
-            // Add new conversation
             acc.push({
               ...conversationUser,
               userDetails:
@@ -73,21 +63,18 @@ function Section(props) {
           return acc;
         }, []);
 
-        console.log("Updated conversations:", updatedConversations);
         setAllUser(updatedConversations);
       });
     }
 
     return () => {
       if (socketConnection) {
-        console.log("Removing 'conversation' event listener");
         socketConnection.off("conversation");
       }
     };
   }, [socketConnection, user]);
 
   const handleLogOut = () => {
-    console.log("Logging out...");
     dispatch(logout());
     navigate("/login");
     localStorage.clear();
@@ -97,7 +84,6 @@ function Section(props) {
     <div className="w-full h-full grid grid-cols-[50px,1fr] bg-white">
       <div className="bg-slate-100 w-12 h-full rounded-tr-lg rounded-br-lg py-5 text-slate-600 flex flex-col justify-between">
         <div>
-          {/* dummy */}
           <NavLink
             to={"/"}
             className={({ isActive }) =>
@@ -109,7 +95,6 @@ function Section(props) {
           >
             <PiChatCircleTextFill size={30} />
           </NavLink>
-          {/* add friend  */}
           <div
             className="mt-1 w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             title="Add friend"
@@ -119,7 +104,6 @@ function Section(props) {
           </div>
         </div>
         <div className="flex flex-col items-center">
-          {/* profile pic */}
           <button
             className="w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             title={user.name ? user.name : "Profile"}
@@ -133,7 +117,6 @@ function Section(props) {
               userId={user?._id}
             />
           </button>
-          {/* logout */}
           <div
             className="w-12 h-12 flex justify-center items-center hover:bg-slate-200 cursor-pointer rounded"
             onClick={handleLogOut}

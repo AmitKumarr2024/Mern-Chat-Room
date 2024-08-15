@@ -32,8 +32,9 @@ const userSlice = createSlice({
     },
     // Logs out the user and resets state
     logout: (state) => {
+      // Reset to initial state
       return {
-        ...initialState, // Reset to initial state
+        ...initialState, 
         socketConnection: null, // Ensure socketConnection is reset
       };
     },
