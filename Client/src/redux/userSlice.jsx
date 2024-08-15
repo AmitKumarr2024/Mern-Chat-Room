@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Initial state definition
 const initialState = {
   _id: "",
   email: "",
@@ -11,12 +12,13 @@ const initialState = {
   socketConnection: null, // Non-serializable data
 };
 
-export const userSlice = createSlice({
+// Create a slice of the state
+const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    // Sets user details
     setUser: (state, action) => {
-      // Destructure action.payload directly for clarity
       const { _id, email, name, phone, profile_pic } = action.payload;
       state._id = _id;
       state.email = email;
@@ -24,28 +26,30 @@ export const userSlice = createSlice({
       state.phone = phone;
       state.profile_pic = profile_pic;
     },
+    // Sets the authentication token
     setToken: (state, action) => {
       state.token = action.payload;
     },
+    // Logs out the user and resets state
     logout: (state) => {
-      state._id = "";
-      state.email = "";
-      state.name = "";
-      state.phone = "";
-      state.profile_pic = "";
-      state.token = "";
-      state.socketConnection = null; // Reset to null instead of an empty string
+      return {
+        ...initialState, // Reset to initial state
+        socketConnection: null, // Ensure socketConnection is reset
+      };
     },
+    // Updates the list of online users
     setOnlineUser: (state, action) => {
       state.onlineUser = action.payload;
     },
+    // Sets the socket connection
     setSocketConnection: (state, action) => {
       state.socketConnection = action.payload;
     },
   },
 });
 
-// Action creators are generated for each case reducer function
+// Export the action creators
 export const { setUser, setToken, logout, setOnlineUser, setSocketConnection } = userSlice.actions;
 
+// Export the reducer
 export default userSlice.reducer;

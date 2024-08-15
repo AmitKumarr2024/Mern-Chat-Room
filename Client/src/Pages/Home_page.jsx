@@ -2,18 +2,19 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, logout, setOnlineUser, setSocketConnection } from "../redux/userSlice";
+import { setUser, logout } from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
-import io from "socket.io-client";
+import useSocket from '../helper/useSocket'; // Import the custom hook
 
 function Home(props) {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const token = localStorage.getItem("token"); // Retrieve token for socket connection
 
-  const token = localStorage.getItem("token"); // Ensure token is fetched
+  console.log("Redux user state:", user);
 
   const fetchUserDetails = async () => {
     try {
@@ -44,59 +45,46 @@ function Home(props) {
   useEffect(() => {
     console.log("Component mounted. Fetching user details...");
     fetchUserDetails();
-  }, [navigate, dispatch]);
+  }, [navigate, dispatch]); // Include navigate and dispatch in the dependency array
 
-  useEffect(() => {
-    if (!token) return;
-
-    console.log("Initializing socket connection...");
-
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      auth: { token },
-    });
-
-    socketConnection.on("connect", () => {
-      console.log("Socket connected:", socketConnection.id);
-    });
-
-    socketConnection.on("onlineUser", (data) => {
-      console.log("Received online users data:", data);
-      dispatch(setOnlineUser(data));
-    });
-
-    dispatch(setSocketConnection(socketConnection));
-
-    return () => {
-      console.log("Disconnecting socket...");
-      socketConnection.disconnect();
-    };
-  }, [dispatch, token]);
+  // Use the custom socket hook
+  useSocket(token);
 
   const basePath = location.pathname === "/";
 
   return (
-    <div className="grid lg:grid-cols-[300px,1fr] h-screen max-h-screen">
-      <section className={`bg-white ${!basePath && "hidden"} lg:block`}>
-        <Section />
-      </section>
+    <>
+      <div className="grid lg:grid-cols-[300px,1fr] h-screen max-h-screen">
+        {/* Sidebar section */}
+        <section className={`bg-white ${!basePath && "hidden"} lg:block`}>
+          <Section />
+        </section>
 
-      <section className={`${basePath ? "hidden" : "block"}`}>
-        <Outlet />
-      </section>
+        {/* Main content section */}
+        <section className={`${basePath ? "hidden" : "block"}`}>
+          <Outlet />
+        </section>
 
-      <div
-        className={`hidden justify-center items-center flex-col gap-2 ${
-          !basePath ? "hidden" : "lg:flex"
-        }`}
-      >
-        <div>
-          <img src={Logo} width={150} className="rounded-3xl" alt="App Logo" />
+        {/* App image and message */}
+        <div
+          className={`hidden justify-center items-center flex-col gap-2 ${
+            !basePath ? "hidden" : "lg:flex"
+          }`}
+        >
+          <div>
+            <img
+              src={Logo}
+              width={150}
+              className="rounded-3xl"
+              alt="App Logo"
+            />
+          </div>
+          <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
+            Explore User to Send Messages.
+          </p>
         </div>
-        <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
-          Explore User to Send Messages.
-        </p>
       </div>
-    </div>
+    </>
   );
 }
 
