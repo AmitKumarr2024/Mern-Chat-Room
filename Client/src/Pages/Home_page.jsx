@@ -5,21 +5,17 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setUser,
   logout,
-  setOnlineUser,
-  setSocketConnection,
+ 
 } from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
-import io from "socket.io-client";
+import useSocket from "../helper/useSocket";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-
-
-  
 
   console.log("redux user", user);
 
@@ -40,7 +36,11 @@ function Home(props) {
       // Set user details in Redux
       dispatch(setUser(data.data));
 
-      
+      // Handle logout if session expired
+      if (data.data.logout) {
+        dispatch(logout());
+        navigate("/login");
+      }
 
       console.log("User details response:", data);
     } catch (error) {
@@ -52,44 +52,9 @@ function Home(props) {
     fetchUserDetails();
   }, []); // Run only once on mount
 
-  useEffect(() => {
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      transports: ['websocket', 'polling'], // Force WebSocket transport
-  auth: {
-    token: localStorage.getItem("token"),
-  },
-});
-    socketConnection.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
-    });
-  
-    socketConnection.on("disconnect", (reason) => {
-      console.error("WebSocket disconnected:", reason);
-    });
-  
-    socketConnection.on("onlineUser", (data) => {
-      console.log("Online users:", data);
-      dispatch(setOnlineUser(data));
-    });
 
-
-    socketConnection.on("connect_error", (err) => {
-      // the reason of the error, for example "xhr poll error"
-      console.log(err.message);
-    
-      // some additional description, for example the status code of the initial HTTP response
-      console.log(err.description);
-    
-      // some additional context, for example the XMLHttpRequest object
-      console.log(err.context);
-    });
+  useSocket();
   
-    dispatch(setSocketConnection(socketConnection));
-  
-    return () => {
-      socketConnection.disconnect();
-    };
-  }, []);
 
   const basePath = location.pathname === "/";
 

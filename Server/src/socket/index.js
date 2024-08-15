@@ -13,7 +13,9 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is correctly set
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
-  }
+  },
+  pingTimeout: 60000, // 60 seconds to prevent disconnections due to network delays
+  pingInterval: 25000, // 25 seconds between pings to maintain connection
 });
 
 console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
@@ -21,7 +23,7 @@ console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
 const onlineUser = new Set();
 
 io.on('connection', async (socket) => {
-  console.log("connect User ", socket.id);
+  console.log("User connected: ", socket.id);
   let userDetails;
 
   try {
@@ -46,7 +48,6 @@ io.on('connection', async (socket) => {
 
     socket.on('message-page', async (userId) => {
       try {
-        console.log('userId', userId);
         const otherUserDetails = await UserModel.findById(userId).select('-password');
         if (!otherUserDetails) return;
 
@@ -61,7 +62,6 @@ io.on('connection', async (socket) => {
 
         socket.emit('message-user', payload);
 
-        // Get previous messages
         const conversation = await ConversationModel.findOne({
           $or: [
             { sender: userDetails._id, receiver: userId },
@@ -115,7 +115,6 @@ io.on('connection', async (socket) => {
         io.to(data.sender).emit('message', updatedConversation.messages);
         io.to(data.receiver).emit('message', updatedConversation.messages);
 
-        // Send conversation for sidebar
         const sidebarSender = await getConversation(data.sender);
         const sidebarReceiver = await getConversation(data.receiver);
 
@@ -128,7 +127,6 @@ io.on('connection', async (socket) => {
 
     socket.on('sidebar', async (currentUserId) => {
       try {
-        console.log("current user", currentUserId);
         const conversation = await getConversation(currentUserId);
         socket.emit('conversation', conversation);
       } catch (error) {
@@ -151,7 +149,6 @@ io.on('connection', async (socket) => {
           { $set: { seen: true } }
         );
 
-        // Send updated conversations
         const sidebarSender = await getConversation(userDetails._id.toString());
         const sidebarReceiver = await getConversation(msgByUserId);
 
@@ -171,7 +168,7 @@ io.on('connection', async (socket) => {
     if (userDetails && userDetails._id) {
       onlineUser.delete(userDetails._id.toString());
       io.emit('onlineUser', Array.from(onlineUser));
-      console.log('disconnect user ', socket.id);
+      console.log('User disconnected:', socket.id);
     }
   });
 });
