@@ -14,7 +14,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly in your environment
+    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   }
 });
@@ -29,20 +29,19 @@ io.on('connection', async (socket) => {
 
   try {
     // Extract token from socket handshake
-    const token = socket.handshake.auth.token;
+    const token = socket.handshake.auth?.token;
+    if (!token) {
+      console.error('Token missing from handshake');
+      socket.disconnect();
+      return;
+    }
+
     console.log('Token received:', token); // Log token received
 
     userDetails = await userDetailsJsonWebToken(token);
 
-    if (!userDetails) {
-      socket.disconnect(); // Disconnect socket if authentication fails
-      console.log('User authentication failed. Disconnecting socket.'); // Log authentication failure
-      return;
-    }
-
-    // Check if userDetails is properly set and _id is defined
-    if (!userDetails._id) {
-      console.error('UserDetails or UserDetails._id is undefined:', userDetails);
+    if (!userDetails || !userDetails._id) {
+      console.error('User authentication failed or userDetails._id is undefined:', userDetails);
       socket.disconnect();
       return;
     }
