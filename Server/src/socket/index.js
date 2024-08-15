@@ -11,14 +11,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly
+    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is correctly set
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   }
 });
 
 console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
 
-// Keep track of online users
 const onlineUser = new Set();
 
 io.on('connection', async (socket) => {
@@ -159,7 +158,7 @@ io.on('connection', async (socket) => {
         io.to(userDetails._id.toString()).emit('conversation', sidebarSender);
         io.to(msgByUserId).emit('conversation', sidebarReceiver);
       } catch (error) {
-        console.error('Error marking messages as seens:', error);
+        console.error('Error marking messages as seen:', error);
       }
     });
 
