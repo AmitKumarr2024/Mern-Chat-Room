@@ -53,8 +53,10 @@ function Home(props) {
     });
 
     socketConnection.on("onlineUser", (data) => {
-      console.log(data);
+      console.log("online user",data);
       dispatch(setOnlineUser(data));
+      console.log("setOnlineUser",setOnlineUser(data));
+      
     });
     dispatch(setSocketConnection(socketConnection));
 
