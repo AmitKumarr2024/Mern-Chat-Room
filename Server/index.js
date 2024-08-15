@@ -17,14 +17,14 @@ app.use(cookieParser());
 // CORS middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URLS,
-    credentials: true,  // Allows cookies to be included in the requests
+    origin: process.env.FRONTEND_URLS.split(','), // Split to handle multiple origins if needed
+    credentials: true,
   })
 );
 
 app.use((req, res, next) => {
   console.log('Method:', req.method);
-  console.log('Origin:', req.headers.origin);
+  console.log('Origin:', req.headers.origin); // Logs the origin header for incoming requests
   next();
 });
 
