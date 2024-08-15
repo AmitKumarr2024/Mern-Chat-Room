@@ -5,11 +5,12 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setUser,
   logout,
- 
+  setOnlineUser,
+  setSocketConnection,
 } from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
-import useSocket from "../helper/useSocket";
+import io from "socket.io-client";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
@@ -39,7 +40,7 @@ function Home(props) {
       // Handle logout if session expired
       if (data.data.logout) {
         dispatch(logout());
-        navigate("/login");
+        navigate("/email");
       }
 
       console.log("User details response:", data);
@@ -52,9 +53,24 @@ function Home(props) {
     fetchUserDetails();
   }, []); // Run only once on mount
 
+  useEffect(() => {
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+      auth: {
+        token: localStorage.getItem("token"),
+      },
+    });
 
-  useSocket();
-  
+    socketConnection.on("onlineUser", (data) => {
+      console.log("Online users:", data);
+      dispatch(setOnlineUser(data));
+    });
+
+    dispatch(setSocketConnection(socketConnection));
+
+    return () => {
+      socketConnection.disconnect();
+    };
+  }, []);
 
   const basePath = location.pathname === "/";
 
