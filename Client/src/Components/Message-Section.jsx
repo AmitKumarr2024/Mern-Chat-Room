@@ -15,7 +15,9 @@ import moment from "moment";
 
 const MessageSection = React.memo(() => {
   const params = useParams();
-  const socketConnection = useSelector((state) => state?.user?.socketConnection);
+  const socketConnection = useSelector(
+    (state) => state?.user?.socketConnection
+  );
   const user = useSelector((state) => state?.user);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +35,6 @@ const MessageSection = React.memo(() => {
     imageUrl: "",
     videoUrl: "", // Corrected typo from 'vide' to 'video'
   });
-
   const [allMessage, setAllMessage] = useState([]);
 
   const [openAttachment, setOpenAttachment] = useState(false);
@@ -50,20 +51,14 @@ const MessageSection = React.memo(() => {
       }
     }, 100); // Adjust the delay as needed
   }, [allMessage]);
-
   useEffect(() => {
     if (socketConnection) {
-      console.log('Socket connection established');
       socketConnection.emit("message-page", params?.userId);
       socketConnection.emit("seen", params?.userId);
-
       socketConnection.on("message-user", (data) => {
-        console.log('User data received from socket:', data);
         setUserData(data);
       });
-
       socketConnection.on("message", (data) => {
-        console.log('Messages received from socket:', data);
         setAllMessage(data);
       });
     }
@@ -83,7 +78,7 @@ const MessageSection = React.memo(() => {
       "video/mov",
       "video/mkv",
     ];
-    const maxSize = 30485760; // 30 MB in bytes
+    const maxSize = 30485760; // 10 MB in bytes
 
     if (!validVideoTypes.includes(file.type)) {
       alert("Invalid file type. Please select a valid video file.");
@@ -91,15 +86,13 @@ const MessageSection = React.memo(() => {
     }
 
     if (file.size > maxSize) {
-      alert("File size too large. Please select a file under 30 MB.");
+      alert("File size too large. Please select a file under 10 MB.");
       return;
     }
 
     try {
       setLoading(true);
       const uploadPhoto = await uploadFile(file);
-      console.log("Uploaded Video URL:", uploadPhoto.url); // Verify URL
-
       setMessage((prev) => ({
         ...prev,
         videoUrl: uploadPhoto.url,
@@ -131,7 +124,7 @@ const MessageSection = React.memo(() => {
 
       setMessage((prev) => ({
         ...prev,
-        imageUrl: uploadPhoto.url,
+        imageUrl: uploadPhoto.url, // Set the correct image URL
       }));
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -144,7 +137,7 @@ const MessageSection = React.memo(() => {
   const handleClearUploadImage = () => {
     setMessage((prev) => ({
       ...prev,
-      imageUrl: "", // Corrected key to 'imageUrl'
+      image: null,
     }));
   };
 
@@ -263,27 +256,34 @@ const MessageSection = React.memo(() => {
                 <div
                   className={` your-scroll-container py-1 w-fit rounded-lg ${
                     user?._id === msg?.msgByUserId
-                      ? "ml-auto bg-indigo-400 text-white"
-                      : "bg-white text-gray-900"
+                      ? "ml-auto bg-indigo-400 text-slate-100 mb-2"
+                      : "bg-white"
                   }`}
                 >
-                  <p className="py-2 px-3 text-sm whitespace-pre-wrap">
-                    {msg.text}
+                  <div className="w-full max-w-sm mx-auto">
+                    {msg?.imageUrl && (
+                      <img
+                        src={msg?.imageUrl}
+                        className="w-full h-auto max-h-96 object-scale-down"
+                        alt="Message Image"
+                      />
+                    )}
+
+                    {msg?.videoUrl && (
+                      <video
+                        src={msg?.videoUrl}
+                        className="w-full h-auto max-h-96 object-scale-down"
+                        controls
+                        muted
+                        autoPlay
+                      />
+                    )}
+                  </div>
+
+                  <p className="px-3">{msg.text}</p>
+                  <p className="text-xs font-medium text-gray-700 ml-auto w-fit px-1">
+                    {moment(msg.createdAt).format("LT")} {/* Time */}
                   </p>
-                  {msg?.imageUrl && (
-                    <img
-                      src={msg.imageUrl}
-                      alt="Message Image"
-                      className="max-w-xs rounded-lg"
-                    />
-                  )}
-                  {msg?.videoUrl && (
-                    <video
-                      controls
-                      src={msg.videoUrl}
-                      className="max-w-xs rounded-lg"
-                    />
-                  )}
                 </div>
               </div>
             );
@@ -291,78 +291,70 @@ const MessageSection = React.memo(() => {
         </div>
       </section>
 
-      <footer className="sticky bottom-0 py-4 px-2 bg-indigo-100 shadow-md flex items-center gap-3">
-        <div
-          onClick={handleToggleAttachment}
-          className="flex-shrink-0 flex items-center justify-center p-1 border-2 border-indigo-400 rounded-full"
-        >
-          <RiAttachment2 size={25} className="text-indigo-400" />
+      {/* below button */}
+      <section className="h-16 px-6 flex gap-4 items-center bg-white">
+        <div className="relative">
+          <button
+            onClick={handleToggleAttachment}
+            className="flex justify-center items-center hover:text-blue-500 cursor-pointer"
+          >
+            <RiAttachment2 size={30} />
+          </button>
+
+          {openAttachment && (
+            <div className="bg-white shadow rounded absolute bottom-[40px] w-28 p-2">
+              <form>
+                <label
+                  htmlFor="video"
+                  className="flex justify-center items-center p-1 my-1 gap-3 hover:bg-slate-200 cursor-pointer"
+                >
+                  <div className="text-violet-700">
+                    <IoVideocam size={25} />
+                  </div>
+                  <p>Video</p>
+                </label>
+                <label
+                  htmlFor="image"
+                  className="flex justify-center items-center p-1 gap-3 hover:bg-slate-200 cursor-pointer"
+                >
+                  <div className="text-orange-700">
+                    <IoImageSharp size={25} />
+                  </div>
+                  <p>Image</p>
+                </label>
+                <input
+                  type="file"
+                  id="video"
+                  onChange={handleUploadVideo}
+                  className="hidden"
+                />
+                <input
+                  type="file"
+                  id="image"
+                  onChange={handleUploadImage}
+                  className="hidden"
+                />
+              </form>
+            </div>
+          )}
         </div>
-        <div className="flex-grow">
+        {/* input */}
+        <form
+          className="h-full w-full flex items-center gap-4"
+          onSubmit={handleSendMessage}
+        >
           <input
             type="text"
-            name="text"
-            placeholder="Type a message..."
-            value={message.text}
+            placeholder="Type Your message..."
+            className="py-1 px-4 outline-none  w-full h-full"
+            value={message?.text}
             onChange={handleOnChangeText}
-            className="w-full px-3 py-2 border rounded-full outline-none"
           />
-        </div>
-        <button
-          onClick={handleSendMessage}
-          className="flex-shrink-0 flex items-center justify-center p-1 border-2 border-indigo-400 rounded-full"
-        >
-          <RiSendPlane2Line size={25} className="text-indigo-400" />
-        </button>
-      </footer>
-
-      {openAttachment && (
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-200 p-4 flex flex-col items-center gap-4 border-t border-gray-300 shadow-md">
-          {loading && <Loading />}
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleUploadVideo}
-            className="w-full"
-          />
-          {message.videoUrl && (
-            <div className="relative">
-              <video
-                controls
-                src={message.videoUrl}
-                className="max-w-xs rounded-lg"
-              />
-              <button
-                onClick={handleCloseUploadVideo}
-                className="absolute top-0 right-0 p-2 text-red-600"
-              >
-                <IoMdClose size={20} />
-              </button>
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleUploadImage}
-            className="w-full"
-          />
-          {message.imageUrl && (
-            <div className="relative">
-              <img
-                src={message.imageUrl}
-                alt="Uploaded"
-                className="max-w-xs rounded-lg"
-              />
-              <button
-                onClick={handleClearUploadImage}
-                className="absolute top-0 right-0 p-2 text-red-600"
-              >
-                <IoMdClose size={20} />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+          <button className="text-green-600 hover:bg-blue-500 hover:text-white hover:rounded-full p-2">
+            <RiSendPlane2Line size={30} />
+          </button>
+        </form>
+      </section>
     </div>
   );
 });
