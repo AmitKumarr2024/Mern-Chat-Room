@@ -1,14 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setUser,
+  logout,
   setOnlineUser,
   setSocketConnection,
 } from "../redux/userSlice";
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
+import io from "socket.io-client";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
@@ -16,20 +18,29 @@ function Home(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const wsRef = useRef<WebSocket | null>(null);
+
+  
+
+  console.log("redux user", user);
 
   const fetchUserDetails = async () => {
     try {
       const response = await fetch(UserApi.userDetails.url, {
-        credentials: "include",
+        credentials: "include", // Ensure this is correctly spelled and used
       });
 
+      // Check if response is ok
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      // Parse response data
       const data = await response.json();
+
+      // Set user details in Redux
       dispatch(setUser(data.data));
+
+      
 
       console.log("User details response:", data);
     } catch (error) {
@@ -42,40 +53,43 @@ function Home(props) {
   }, []); // Run only once on mount
 
   useEffect(() => {
-    const address = import.meta.env.VITE_REACT_APP_BACKEND_URL;
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+      transports: ['websocket'], // Force WebSocket transport
+      auth: {
+        token: localStorage.getItem("token"),
+      },
+    });
+    socketConnection.on("connect_error", (error) => {
+      console.error("WebSocket connection errors:", error);
+    });
+  
+    socketConnection.on("disconnect", (reason) => {
+      console.error("WebSocket disconnected:", reason);
+    });
+  
+    socketConnection.on("onlineUser", (data) => {
+      console.log("Online users:", data);
+      dispatch(setOnlineUser(data));
+    });
+
+
+    socketConnection.on("connect_error", (err) => {
+      // the reason of the error, for example "xhr poll error"
+      console.log(err.message);
     
-    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
-      const socket = new WebSocket(address);
-      wsRef.current = socket;
-      dispatch(setSocketConnection(socket));
-
-      socket.onopen = () => {
-        console.log("WebSocket connection established");
-      };
-
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === "onlineUser") {
-          console.log("Online users:", data.users);
-          dispatch(setOnlineUser(data.users));
-        }
-      };
-
-      socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
-
-      socket.onclose = (event) => {
-        console.log("WebSocket connection closed:", event);
-      };
-    }
-
+      // some additional description, for example the status code of the initial HTTP response
+      console.log(err.description);
+    
+      // some additional context, for example the XMLHttpRequest object
+      console.log(err.context);
+    });
+  
+    dispatch(setSocketConnection(socketConnection));
+  
     return () => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
-      }
+      socketConnection.disconnect();
     };
-  }, [dispatch]);
+  }, []);
 
   const basePath = location.pathname === "/";
 
