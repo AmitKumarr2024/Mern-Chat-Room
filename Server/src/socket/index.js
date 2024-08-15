@@ -1,55 +1,51 @@
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import jwt from "jsonwebtoken";
 import userDetailsJsonWebToken from "../middleware/userDetailsJsonWebToken.js";
 import UserModel from "../context/Users/User_model.js";
-import { ConversationModel, MessageModel } from "../context/Conversation/Conversation_model.js";
+import {
+  ConversationModel,
+  MessageModel,
+} from "../context/Conversation/Conversation_model.js";
 import getConversation from "../middleware/getConversation.js";
 
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS,
-    credentials: true,
+    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   }
 });
 
 console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
 
+// Keep track of online users
 const onlineUser = new Set();
 
-// Middleware to verify token
-io.use(async (socket, next) => {
+io.on('connection', async (socket) => {
+  let userDetails;
+
   try {
     const token = socket.handshake.auth?.token;
     if (!token) {
       console.error('Token missing from handshake');
-      return next(new Error('Session ID unknown'));
+      socket.disconnect();
+      return;
     }
 
-    const userDetails = await userDetailsJsonWebToken(token);
+    userDetails = await userDetailsJsonWebToken(token);
+
     if (!userDetails || !userDetails._id) {
       console.error('User authentication failed or userDetails._id is undefined:', userDetails);
-      return next(new Error('Session ID unknown'));
+      socket.disconnect();
+      return;
     }
 
-    // Attach user details to socket object
-    socket.userDetails = userDetails;
-    next();
-  } catch (error) {
-    console.error('Authentication error:', error);
-    next(new Error('Session ID unknown'));
-  }
-});
+    socket.join(userDetails._id.toString());
 
-io.on('connection', async (socket) => {
-  const { _id: userId } = socket.userDetails;
-
-  try {
-    socket.join(userId.toString());
-    onlineUser.add(userId.toString());
+    onlineUser.add(userDetails._id.toString());
     io.emit('onlineUser', Array.from(onlineUser));
 
     socket.on('message-page', async (userId) => {
@@ -70,8 +66,8 @@ io.on('connection', async (socket) => {
 
         const conversation = await ConversationModel.findOne({
           $or: [
-            { sender: userId, receiver: socket.userDetails._id },
-            { sender: socket.userDetails._id, receiver: userId },
+            { sender: userDetails._id, receiver: userId },
+            { sender: userId, receiver: userDetails._id },
           ],
         }).populate('messages').sort({ updatedAt: -1 });
 
@@ -106,6 +102,7 @@ io.on('connection', async (socket) => {
         });
 
         const savedMessage = await message.save();
+
         await ConversationModel.updateOne(
           { _id: conversation._id },
           { $push: { messages: savedMessage._id } }
@@ -144,8 +141,8 @@ io.on('connection', async (socket) => {
       try {
         const conversation = await ConversationModel.findOne({
           $or: [
-            { sender: userId, receiver: msgByUserId },
-            { sender: msgByUserId, receiver: userId },
+            { sender: userDetails._id, receiver: msgByUserId },
+            { sender: msgByUserId, receiver: userDetails._id },
           ],
         });
 
@@ -155,10 +152,10 @@ io.on('connection', async (socket) => {
           { $set: { seen: true } }
         );
 
-        const sidebarSender = await getConversation(userId.toString());
+        const sidebarSender = await getConversation(userDetails._id.toString());
         const sidebarReceiver = await getConversation(msgByUserId);
 
-        io.to(userId.toString()).emit('conversation', sidebarSender);
+        io.to(userDetails._id.toString()).emit('conversation', sidebarSender);
         io.to(msgByUserId).emit('conversation', sidebarReceiver);
       } catch (error) {
         console.error('Error marking messages as seen:', error);
@@ -166,16 +163,17 @@ io.on('connection', async (socket) => {
     });
 
   } catch (error) {
-    console.error('Connection errors:', error);
+    console.error('Connection error:', error);
     socket.disconnect();
   }
 
   socket.on('disconnect', () => {
-    if (userId) {
-      onlineUser.delete(userId.toString());
+    if (userDetails && userDetails._id) {
+      onlineUser.delete(userDetails._id.toString());
       io.emit('onlineUser', Array.from(onlineUser));
     }
   });
 });
+
 
 export { app, server };
