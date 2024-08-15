@@ -24,7 +24,9 @@ app.use(
 
 app.use((req, res, next) => {
   console.log('Method:', req.method);
-  console.log('Origin:', req.headers.origin); // Logs the origin header for incoming requests
+  console.log('Origin:', req.headers.origin); // Logs the origin
+  console.log('Path:', req.path);
+  console.log('Headers:', req.headers);
   next();
 });
 
