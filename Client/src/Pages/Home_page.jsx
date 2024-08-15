@@ -16,26 +16,38 @@ function Home(props) {
 
   const fetchUserDetails = async () => {
     try {
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      if (!token) {
+        console.log("No token found");
+        return;
+      }
+  
       const response = await fetch(UserApi.userDetails.url, {
         method: "GET",
-        credentials: "include",
+        credentials: "include", // If session is cookie-based
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Send token in Authorization header
+        },
       });
+  
       const data = await response.json();
-      console.log('Fetched user data:', data.data);
-
+      console.log("Fetched user data:", data.data);
+  
       // Set user details in Redux
       dispatch(setUser(data.data));
-
-      // Only dispatch logout if necessary (e.g., user session expired)
+  
+      // Handle logout if session expired
       if (data.data?.logout) {
         dispatch(logout());
       }
-
+  
       console.log("User details response:", data);
     } catch (error) {
       console.log("Error fetching user details:", error);
     }
   };
+  
 
   useEffect(() => {
     fetchUserDetails();
