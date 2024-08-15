@@ -1,13 +1,28 @@
-// import { Navigate } from "react-router-dom";
+import React from "react";
+import { Navigate } from "react-router-dom";
+import jwt_decode from "jwt-decode"; // You need to install this package if not already installed
 
-// const ProtectedRoute = ({ children }) => {
-//   const isAuthenticated = !!localStorage.getItem("token"); // Assuming token is stored in localStorage after login
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
 
-//   if (!isAuthenticated) {
-//     return <Navigate to="/login" replace />;
-//   }
+  const isTokenValid = () => {
+    if (!token) return false;
 
-//   return children;
-// };
+    try {
+      const decodedToken = jwt_decode(token);
+      const currentTime = Date.now() / 1000; // Current time in seconds
+      return decodedToken.exp > currentTime; // Check if token is still valid
+    } catch (error) {
+      console.error("Invalid token:", error);
+      return false;
+    }
+  };
 
-// export default ProtectedRoute;
+  if (!isTokenValid()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;
