@@ -10,12 +10,11 @@ const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
- 
   cors: {
-    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is correctly set
+    origin: process.env.FRONTEND_URLS.split(','), // Allows multiple frontend URLs
+    methods: ["GET", "POST"],
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   },
- 
 });
 
 console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
