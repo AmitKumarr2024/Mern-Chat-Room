@@ -3,10 +3,7 @@ import { Server } from "socket.io";
 import http from "http";
 import userDetailsJsonWebToken from "../middleware/userDetailsJsonWebToken.js";
 import UserModel from "../context/Users/User_model.js";
-import {
-  ConversationModel,
-  MessageModel,
-} from "../context/Conversation/Conversation_model.js";
+import { ConversationModel, MessageModel } from "../context/Conversation/Conversation_model.js";
 import getConversation from "../middleware/getConversation.js";
 
 const app = express();
@@ -25,6 +22,7 @@ console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
 const onlineUser = new Set();
 
 io.on('connection', async (socket) => {
+  console.log("connect User ", socket.id);
   let userDetails;
 
   try {
@@ -44,12 +42,12 @@ io.on('connection', async (socket) => {
     }
 
     socket.join(userDetails._id.toString());
-
     onlineUser.add(userDetails._id.toString());
     io.emit('onlineUser', Array.from(onlineUser));
 
     socket.on('message-page', async (userId) => {
       try {
+        console.log('userId', userId);
         const otherUserDetails = await UserModel.findById(userId).select('-password');
         if (!otherUserDetails) return;
 
@@ -64,6 +62,7 @@ io.on('connection', async (socket) => {
 
         socket.emit('message-user', payload);
 
+        // Get previous messages
         const conversation = await ConversationModel.findOne({
           $or: [
             { sender: userDetails._id, receiver: userId },
@@ -102,7 +101,6 @@ io.on('connection', async (socket) => {
         });
 
         const savedMessage = await message.save();
-
         await ConversationModel.updateOne(
           { _id: conversation._id },
           { $push: { messages: savedMessage._id } }
@@ -118,6 +116,7 @@ io.on('connection', async (socket) => {
         io.to(data.sender).emit('message', updatedConversation.messages);
         io.to(data.receiver).emit('message', updatedConversation.messages);
 
+        // Send conversation for sidebar
         const sidebarSender = await getConversation(data.sender);
         const sidebarReceiver = await getConversation(data.receiver);
 
@@ -130,6 +129,7 @@ io.on('connection', async (socket) => {
 
     socket.on('sidebar', async (currentUserId) => {
       try {
+        console.log("current user", currentUserId);
         const conversation = await getConversation(currentUserId);
         socket.emit('conversation', conversation);
       } catch (error) {
@@ -152,6 +152,7 @@ io.on('connection', async (socket) => {
           { $set: { seen: true } }
         );
 
+        // Send updated conversations
         const sidebarSender = await getConversation(userDetails._id.toString());
         const sidebarReceiver = await getConversation(msgByUserId);
 
@@ -171,9 +172,9 @@ io.on('connection', async (socket) => {
     if (userDetails && userDetails._id) {
       onlineUser.delete(userDetails._id.toString());
       io.emit('onlineUser', Array.from(onlineUser));
+      console.log('disconnect user ', socket.id);
     }
   });
 });
-
 
 export { app, server };
