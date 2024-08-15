@@ -22,19 +22,27 @@ function Home(props) {
   const fetchUserDetails = async () => {
     try {
       const response = await fetch(UserApi.userDetails.url, {
-        credentials: true, // If session is cookie-based
+        credentials: "include", // Ensure this is correctly spelled and used
       });
 
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Parse response data
+      const data = await response.json();
+
       // Set user details in Redux
-      dispatch(setUser(response.data.data));
+      dispatch(setUser(data.data));
 
       // Handle logout if session expired
-      if (response.data.data.logout) {
+      if (data.data.logout) {
         dispatch(logout());
         navigate("/email");
       }
 
-      console.log("User details response:", response);
+      console.log("User details response:", data);
     } catch (error) {
       console.log("Error fetching user details:", error);
     }
