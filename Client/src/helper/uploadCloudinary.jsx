@@ -23,7 +23,14 @@ const uploadFile = async (file) => {
       );
     }
 
-    return dataResponse;
+    // Ensure that the URL is using HTTPS
+    const secureUrl = dataResponse.url.replace("http://", "https://");
+    
+    // Log the secure URL (optional)
+    console.log('Secure URL:', secureUrl);
+
+    // Return the modified secure URL instead of the original
+    return { ...dataResponse, url: secureUrl };
   } catch (error) {
     console.error("Upload error:", error);
     throw error;
