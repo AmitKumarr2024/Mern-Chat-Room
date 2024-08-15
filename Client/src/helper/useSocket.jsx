@@ -8,10 +8,9 @@ const useSocket = () => {
 
   useEffect(() => {
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      transports: ['websocket','polling'], // Force WebSocket transport
+      transports: ['websocket'], // Force WebSocket transport
       auth: { token: localStorage.getItem("token") },
-      reconnectionAttempts: 10,  // Try to reconnect up to 10 times
-      reconnectionDelay: 5000,   // Wait 5 seconds between reconnection attempts
+    
     });
 
     socketConnection.on("connect", () => {
