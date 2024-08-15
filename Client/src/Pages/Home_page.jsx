@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setUser,
-  logout,
   setOnlineUser,
   setSocketConnection,
 } from "../redux/userSlice";
@@ -17,7 +16,7 @@ function Home(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log("redux user", user);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const fetchUserDetails = async () => {
     try {
@@ -44,33 +43,36 @@ function Home(props) {
 
   useEffect(() => {
     const address = import.meta.env.VITE_REACT_APP_BACKEND_URL;
-    const socket = new WebSocket(address);
+    
+    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+      const socket = new WebSocket(address);
+      wsRef.current = socket;
+      dispatch(setSocketConnection(socket));
 
-    socket.onopen = () => {
-      console.log("WebSocket connection established");
-    };
+      socket.onopen = () => {
+        console.log("WebSocket connection established");
+      };
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "onlineUser") {
-        console.log("Online users:", data.users);
-        dispatch(setOnlineUser(data.users));
-      }
-    };
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "onlineUser") {
+          console.log("Online users:", data.users);
+          dispatch(setOnlineUser(data.users));
+        }
+      };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
 
-    socket.onclose = (event) => {
-      console.log("WebSocket connection closed:", event);
-    };
-
-    dispatch(setSocketConnection(socket));
+      socket.onclose = (event) => {
+        console.log("WebSocket connection closed:", event);
+      };
+    }
 
     return () => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
       }
     };
   }, [dispatch]);
@@ -99,7 +101,7 @@ function Home(props) {
           <img src={Logo} width={150} className="rounded-3xl" alt="App Logo" />
         </div>
         <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
-          Explore User to Send Message.
+          Explore User to Send Messages.
         </p>
       </div>
     </div>
