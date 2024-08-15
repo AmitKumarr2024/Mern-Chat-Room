@@ -52,6 +52,7 @@ const getUserDetailsFromToken = async (token) => {
       };
     }
   }
+  
 };
 
 export default getUserDetailsFromToken;

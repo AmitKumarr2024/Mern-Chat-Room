@@ -22,8 +22,8 @@ const userSlice = createSlice({
       const { _id, email, name, phone, profile_pic } = action.payload;
       state._id = _id || "";
       state.email = email || "";
-      state.name = name || "amit kumar";
-      state.phone = phone || "987654321";
+      state.name = name || "";
+      state.phone = phone || "";
       state.profile_pic = profile_pic || "";
     },
     // Sets the authentication token
