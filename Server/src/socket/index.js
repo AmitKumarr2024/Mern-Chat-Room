@@ -159,7 +159,7 @@ io.on('connection', async (socket) => {
         io.to(userDetails._id.toString()).emit('conversation', sidebarSender);
         io.to(msgByUserId).emit('conversation', sidebarReceiver);
       } catch (error) {
-        console.error('Error marking messages as seen:', error);
+        console.error('Error marking messages as seens:', error);
       }
     });
 
