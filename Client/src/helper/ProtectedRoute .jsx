@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }) => {
       const currentTime = Date.now() / 1000; // Current time in seconds
       return decodedToken.exp > currentTime; // Check if token is still valid
     } catch (error) {
-      console.error("Invalid token:", error);
+      console.error("Invalid tokenn:", error);
       return false;
     }
   };
