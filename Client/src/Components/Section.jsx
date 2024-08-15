@@ -14,6 +14,7 @@ import { logout } from "../redux/userSlice";
 
 function Section(props) {
   const user = useSelector((state) => state?.user);
+  console.log("Current Redux User State:", user);
   const socketConnection = useSelector((state) => state?.user?.socketConnection);
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [allUser, setAllUser] = useState([]);
