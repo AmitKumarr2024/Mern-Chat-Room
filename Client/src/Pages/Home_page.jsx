@@ -1,13 +1,8 @@
 import React, { useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import UserApi from "../common/user_url";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setUser,
-  logout,
-  setOnlineUser,
-  setSocketConnection,
-} from "../redux/userSlice"; // Ensure logout is imported
+import { setUser, logout, setOnlineUser, setSocketConnection } from "../redux/userSlice"; 
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
 import io from "socket.io-client";
@@ -15,7 +10,6 @@ import io from "socket.io-client";
 function Home(props) {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const location = useLocation();
 
   console.log("redux user", user);
@@ -27,17 +21,19 @@ function Home(props) {
         credentials: "include",
       });
       const data = await response.json();
-      console.log('home',data.data);
-      
+      console.log('Fetched user data:', data.data);
+
+      // Set user details in Redux
       dispatch(setUser(data.data));
 
-      if (data.data.logout) {
+      // Only dispatch logout if necessary (e.g., user session expired)
+      if (data.data?.logout) {
         dispatch(logout());
-        navigate("/login");
       }
-      console.log("user response", data);
+
+      console.log("User details response:", data);
     } catch (error) {
-      console.log("user details error:", error);
+      console.log("Error fetching user details:", error);
     }
   };
 
@@ -53,11 +49,10 @@ function Home(props) {
     });
 
     socketConnection.on("onlineUser", (data) => {
-      console.log("online user",data);
+      console.log("Online users:", data);
       dispatch(setOnlineUser(data));
-      console.log("setOnlineUser",setOnlineUser(data));
-      
     });
+
     dispatch(setSocketConnection(socketConnection));
 
     return () => {
@@ -65,42 +60,39 @@ function Home(props) {
     };
   }, []);
 
-  // console.log("location", location);
   const basePath = location.pathname === "/";
 
   return (
-    <>
-      <div className="grid lg:grid-cols-[300px,1fr] h-screen max-h-screen">
-        {/* Sidebar section */}
-        <section className={`bg-white ${!basePath && "hidden"} lg:block`}>
-          <Section />
-        </section>
+    <div className="grid lg:grid-cols-[300px,1fr] h-screen max-h-screen">
+      {/* Sidebar section */}
+      <section className={`bg-white ${!basePath && "hidden"} lg:block`}>
+        <Section />
+      </section>
 
-        {/* Main content section */}
-        <section className={`${basePath ? "hidden" : "block"}`}>
-          <Outlet />
-        </section>
+      {/* Main content section */}
+      <section className={`${basePath ? "hidden" : "block"}`}>
+        <Outlet />
+      </section>
 
-        {/* App image and message */}
-        <div
-          className={`hidden justify-center items-center flex-col gap-2 ${
-            !basePath ? "hidden" : "lg:flex"
-          }`}
-        >
-          <div>
-            <img
-              src={Logo}
-              width={150}
-              className="rounded-3xl"
-              alt="App Logo"
-            />
-          </div>
-          <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
-            Explore User to Send Messages.
-          </p>
+      {/* App image and message */}
+      <div
+        className={`hidden justify-center items-center flex-col gap-2 ${
+          !basePath ? "hidden" : "lg:flex"
+        }`}
+      >
+        <div>
+          <img
+            src={Logo}
+            width={150}
+            className="rounded-3xl"
+            alt="App Logo"
+          />
         </div>
+        <p className="text-lg mt-2 text-center text-slate-500 font-semibold capitalize">
+          Explore User to Send Messages.
+        </p>
       </div>
-    </>
+    </div>
   );
 }
 
