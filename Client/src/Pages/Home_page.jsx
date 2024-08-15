@@ -33,7 +33,7 @@ function Home(props) {
         },
       });
 
-      if (!response.ok) {
+      if (!response.success) {
         console.log("API response status:", response.status);
         console.log("API response status text:", response.statusText);
       }
