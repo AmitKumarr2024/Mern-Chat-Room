@@ -59,14 +59,22 @@ function Home(props) {
         token: localStorage.getItem("token"),
       },
     });
-
+  
+    socketConnection.on("connect_error", (error) => {
+      console.error("WebSocket connection error:", error);
+    });
+  
+    socketConnection.on("disconnect", (reason) => {
+      console.error("WebSocket disconnected:", reason);
+    });
+  
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
       dispatch(setOnlineUser(data));
     });
-
+  
     dispatch(setSocketConnection(socketConnection));
-
+  
     return () => {
       socketConnection.disconnect();
     };
