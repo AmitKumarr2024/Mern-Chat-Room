@@ -1,42 +1,56 @@
-// userSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
+// Initial state definition
+const initialState = {
+  _id: "",
+  email: "",
+  name: "",
+  phone: "",
+  profile_pic: "",
+  token: "",
+  onlineUser: [],
+  socketConnection: null, // Non-serializable data
+};
+
+// Create a slice of the state
 const userSlice = createSlice({
-  name: 'user',
-  initialState: {
-    _id: '',
-    email: '',
-    name: '',
-    phone: '',
-    profile_pic: '',
-    onlineUser: [],
-    socketConnection: null,
-    token: '',
-  },
+  name: "user",
+  initialState,
   reducers: {
-    setUser(state, action) {
-      return { ...state, ...action.payload };
+    // Sets user details
+    setUser: (state, action) => {
+      const { _id, email, name, phone, profile_pic } = action.payload;
+      state._id = _id || "";
+      state.email = email || "";
+      state.name = name || "amit kumar";
+      state.phone = phone || "987654321";
+      state.profile_pic = profile_pic || "";
     },
-    logout(state) {
+    // Sets the authentication token
+    setToken: (state, action) => {
+      state.token = action.payload;
+    },
+    // Logs out the user and resets state
+    logout: (state) => {
+      // Reset to initial state
       return {
-        _id: '',
-        email: '',
-        name: '',
-        phone: '',
-        profile_pic: '',
-        onlineUser: [],
-        socketConnection: null,
-        token: '',
+        ...initialState, 
+        socketConnection: null, // Ensure socketConnection is reset
       };
     },
-    setOnlineUser(state, action) {
+    // Updates the list of online users
+    setOnlineUser: (state, action) => {
       state.onlineUser = action.payload;
     },
-    setSocketConnection(state, action) {
+    // Sets the socket connection
+    setSocketConnection: (state, action) => {
       state.socketConnection = action.payload;
     },
   },
 });
 
-export const { setUser, logout, setOnlineUser, setSocketConnection } = userSlice.actions;
+// Export the action creators
+export const { setUser, setToken, logout, setOnlineUser, setSocketConnection } = userSlice.actions;
+
+// Export the reducer
 export default userSlice.reducer;
