@@ -14,7 +14,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly in your environment
+    origin:process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly in your environment
     credentials: true,                 // Allow credentials (cookies, authorization headers, etc.)
   }
 });

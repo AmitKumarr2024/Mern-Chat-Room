@@ -12,10 +12,7 @@ import { app, server } from "./src/socket/index.js";
 app.use(express.json());
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-  console.log('Origin:', req.headers.origin);
-  next();
-});
+
 
 // CORS middleware
 app.use(
@@ -24,6 +21,12 @@ app.use(
     credentials: true,  // Allows cookies to be included in the requests
   })
 );
+
+app.use((req, res, next) => {
+  console.log('Method:', req.method);
+  console.log('Origin:', req.headers.origin);
+  next();
+});
 
 app.use("/api/users", UserRoute);
 
