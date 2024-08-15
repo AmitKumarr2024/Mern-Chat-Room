@@ -40,6 +40,13 @@ io.on('connection', async (socket) => {
       return;
     }
 
+    // Check if userDetails is properly set and _id is defined
+    if (!userDetails._id) {
+      console.error('UserDetails or UserDetails._id is undefined:', userDetails);
+      socket.disconnect();
+      return;
+    }
+
     console.log('User details:', userDetails); // Log user details
 
     // Join the user to their unique room
@@ -176,7 +183,7 @@ io.on('connection', async (socket) => {
 
   // Handle disconnection
   socket.on('disconnect', () => {
-    if (userDetails) {
+    if (userDetails && userDetails._id) {
       onlineUser.delete(userDetails._id.toString());
       io.emit('onlineUser', Array.from(onlineUser));
     }
