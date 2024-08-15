@@ -87,7 +87,7 @@ export const userLogin = async (req, res) => {
     const tokenFromCookie = req.cookies.token;
     if (tokenFromCookie) {
       try {
-        const decodedToken = await jwt.verify(tokenFromCookie, process.env.JWT_SECRET_KEY);
+        const decodedToken = await jsonWebToken.verify(tokenFromCookie, process.env.jsonWebToken_SECRET_KEY);
 
         // Check if the decoded token's ID matches the user ID
         if (decodedToken.id === user._id.toString()) {
@@ -106,7 +106,7 @@ export const userLogin = async (req, res) => {
       email: user.email,
     };
 
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '1h' }); // Adjust expiration as needed
+    const token = jsonWebToken.sign(tokenData, process.env.jsonWebToken_SECRET_KEY, { expiresIn: '1h' }); // Adjust expiration as needed
 
     const cookieOptions = {
       httpOnly: true,
