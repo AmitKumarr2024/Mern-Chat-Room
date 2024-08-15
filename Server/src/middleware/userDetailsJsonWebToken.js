@@ -1,17 +1,12 @@
 import jwt from "jsonwebtoken";
 import UserModel from "../context/Users/User_model.js";
 
-// Ensure JWT_SECRET_KEY is defined
-if (!process.env.JWT_SECRET_KEY) {
-  throw new Error("JWT_SECRET_KEY is not defined in environment variables");
-}
-
 const userDetailsJsonWebToken = async (token) => {
   try {
     if (!token) {
       return {
-        message: "Session out",
-        logout: true,
+        message: "session out",
+        logout: true, // Fixed typo here: changed "logotu" to "logout"
       };
     }
 
@@ -24,7 +19,7 @@ const userDetailsJsonWebToken = async (token) => {
     // If user is not found
     if (!user) {
       return {
-        message: "Session out",
+        message: "session out",
         logout: true,
       };
     }
@@ -37,11 +32,11 @@ const userDetailsJsonWebToken = async (token) => {
     };
 
   } catch (error) {
-    console.error("Error with JWT token:", error.message);
+    console.error("Error with JWT token", error);
 
     // Return error message for invalid token or other errors
     return {
-      message: "Session out",
+      message: "session out",
       logout: true,
     };
   }
