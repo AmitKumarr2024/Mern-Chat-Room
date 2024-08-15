@@ -14,43 +14,45 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin:process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly in your environment
-    credentials: true,                 // Allow credentials (cookies, authorization headers, etc.)
+    origin: process.env.FRONTEND_URLS, // Ensure FRONTEND_URLS is set correctly in your environment
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   }
 });
 
 console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
 
-
-
-// is User is online or not?
-
+// Keep track of online users
 const onlineUser = new Set();
 
-io.on("connection", async (socket) => {
-  let userDetails; // Declare userDetails in a broader scope
+io.on('connection', async (socket) => {
+  let userDetails;
 
   try {
+    // Extract token from socket handshake
     const token = socket.handshake.auth.token;
+    console.log('Token received:', token); // Log token received
+
     userDetails = await userDetailsJsonWebToken(token);
 
-    if (!userDetails) return;
+    if (!userDetails) {
+      socket.disconnect(); // Disconnect socket if authentication fails
+      console.log('User authentication failed. Disconnecting socket.'); // Log authentication failure
+      return;
+    }
 
-    // Join the user to a room with their ID
+    console.log('User details:', userDetails); // Log user details
+
+    // Join the user to their unique room
     socket.join(userDetails._id.toString());
 
     // Mark user as online
     onlineUser.add(userDetails._id.toString());
+    io.emit('onlineUser', Array.from(onlineUser));
 
-    // Emit online users to all clients
-    io.emit("onlineUser", Array.from(onlineUser));
-
-    socket.on("message-page", async (userId) => {
+    // Handle message-page event
+    socket.on('message-page', async (userId) => {
       try {
-        const otherUserDetails = await UserModel.findById(userId).select(
-          "-password"
-        );
-
+        const otherUserDetails = await UserModel.findById(userId).select('-password');
         if (!otherUserDetails) return;
 
         const payload = {
@@ -62,28 +64,25 @@ io.on("connection", async (socket) => {
           online: onlineUser.has(userId),
         };
 
-        socket.emit("message-user", payload);
+        socket.emit('message-user', payload);
 
-        const getConversationMessage = await ConversationModel.findOne({
+        const conversation = await ConversationModel.findOne({
           $or: [
             { sender: userDetails._id, receiver: userId },
             { sender: userId, receiver: userDetails._id },
           ],
         })
-          .populate("messages")
+          .populate('messages')
           .sort({ updatedAt: -1 });
 
-        if (getConversationMessage) {
-          socket.emit("message", getConversationMessage.messages);
-        } else {
-          socket.emit("message", []);
-        }
+        socket.emit('message', conversation ? conversation.messages : []);
       } catch (error) {
-        console.error("Error fetching messages:", error);
+        console.error('Error fetching messages:', error);
       }
     });
 
-    socket.on("new-message", async (data) => {
+    // Handle new-message event
+    socket.on('new-message', async (data) => {
       try {
         let conversation = await ConversationModel.findOne({
           $or: [
@@ -93,107 +92,95 @@ io.on("connection", async (socket) => {
         });
 
         if (!conversation) {
-          const createConversation = new ConversationModel({
+          conversation = new ConversationModel({
             sender: data.sender,
             receiver: data.receiver,
           });
-
-          conversation = await createConversation.save();
+          await conversation.save();
         }
 
         const message = new MessageModel({
-          text: data?.text,
-          imageUrl: data?.imageUrl,
-          videoUrl: data?.videoUrl,
-          msgByUserId: data?.msgByUserId,
+          text: data.text,
+          imageUrl: data.imageUrl,
+          videoUrl: data.videoUrl,
+          msgByUserId: data.msgByUserId,
         });
 
-        const saveMessage = await message.save();
+        const savedMessage = await message.save();
 
         await ConversationModel.updateOne(
-          { _id: conversation?._id },
-          {
-            $push: { messages: saveMessage?._id },
-          }
+          { _id: conversation._id },
+          { $push: { messages: savedMessage._id } }
         );
 
-        const getConversationMessage = await ConversationModel.findOne({
+        const updatedConversation = await ConversationModel.findOne({
           $or: [
             { sender: data.sender, receiver: data.receiver },
             { sender: data.receiver, receiver: data.sender },
           ],
         })
-          .populate("messages")
+          .populate('messages')
           .sort({ updatedAt: -1 });
 
-        io.to(data.sender).emit("message", getConversationMessage.messages);
-        io.to(data.receiver).emit("message", getConversationMessage.messages);
+        io.to(data.sender).emit('message', updatedConversation.messages);
+        io.to(data.receiver).emit('message', updatedConversation.messages);
 
-        const conversationSideBarSender = await getConversation(data.sender);
-        const conversationSideBarReceiver = await getConversation(data.receiver);
+        const sidebarSender = await getConversation(data.sender);
+        const sidebarReceiver = await getConversation(data.receiver);
 
-        io.to(data.sender).emit("conversation", conversationSideBarSender);
-        io.to(data.receiver).emit("conversation", conversationSideBarReceiver);
+        io.to(data.sender).emit('conversation', sidebarSender);
+        io.to(data.receiver).emit('conversation', sidebarReceiver);
       } catch (error) {
-        console.error("Error processing new message:", error);
+        console.error('Error processing new message:', error);
       }
     });
 
-    socket.on("sidebar", async (currentUserId) => {
+    // Handle sidebar event
+    socket.on('sidebar', async (currentUserId) => {
       try {
         const conversation = await getConversation(currentUserId);
-        socket.emit("conversation", conversation);
+        socket.emit('conversation', conversation);
       } catch (error) {
-        console.error("Error fetching sidebar:", error);
+        console.error('Error fetching sidebar:', error);
       }
     });
 
-    socket.on("seen", async (msgByUserId) => {
+    // Handle seen event
+    socket.on('seen', async (msgByUserId) => {
       try {
-        let conversation = await ConversationModel.findOne({
+        const conversation = await ConversationModel.findOne({
           $or: [
             { sender: userDetails._id, receiver: msgByUserId },
             { sender: msgByUserId, receiver: userDetails._id },
           ],
         });
 
-        const conversationMessageId = conversation?.messages || [];
+        const messageIds = conversation?.messages || [];
         await MessageModel.updateMany(
-          {
-            _id: { $in: conversationMessageId },
-            msgByUserId: msgByUserId,
-          },
+          { _id: { $in: messageIds }, msgByUserId },
           { $set: { seen: true } }
         );
 
-        const conversationSideBarSender = await getConversation(
-          userDetails._id.toString()
-        );
-        const conversationSideBarReceiver = await getConversation(msgByUserId);
+        const sidebarSender = await getConversation(userDetails._id.toString());
+        const sidebarReceiver = await getConversation(msgByUserId);
 
-        io.to(userDetails._id.toString()).emit(
-          "conversation",
-          conversationSideBarSender
-        );
-        io.to(msgByUserId).emit("conversation", conversationSideBarReceiver);
+        io.to(userDetails._id.toString()).emit('conversation', sidebarSender);
+        io.to(msgByUserId).emit('conversation', sidebarReceiver);
       } catch (error) {
-        console.error("Error marking messages as seen:", error);
+        console.error('Error marking messages as seen:', error);
       }
     });
   } catch (error) {
-    console.error("Connection error:", error);
+    console.error('Connection error:', error);
   }
 
-  // Handle user disconnection
-  socket.on("disconnect", () => {
+  // Handle disconnection
+  socket.on('disconnect', () => {
     if (userDetails) {
-      onlineUser.delete(userDetails._id.toString()); // Ensure safe deletion
+      onlineUser.delete(userDetails._id.toString());
+      io.emit('onlineUser', Array.from(onlineUser));
     }
   });
 });
 
-
-
-
-// Correctly exporting the app and server using ES module syntax
 export { app, server };
