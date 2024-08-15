@@ -20,11 +20,11 @@ const userSlice = createSlice({
     // Sets user details
     setUser: (state, action) => {
       const { _id, email, name, phone, profile_pic } = action.payload;
-      state._id = _id;
-      state.email = email;
-      state.name = name;
-      state.phone = phone;
-      state.profile_pic = profile_pic;
+      state._id = _id || "";
+      state.email = email || "";
+      state.name = name || "";
+      state.phone = phone || "";
+      state.profile_pic = profile_pic || "";
     },
     // Sets the authentication token
     setToken: (state, action) => {
