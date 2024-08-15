@@ -54,7 +54,7 @@ function Home(props) {
 
   useEffect(() => {
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-  transports: ['websocket'], // Force WebSocket transport
+  transports: ['polling'], // Force WebSocket transport
   auth: {
     token: localStorage.getItem("token"),
   },
