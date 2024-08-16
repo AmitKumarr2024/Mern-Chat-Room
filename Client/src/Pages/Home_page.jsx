@@ -83,7 +83,7 @@ function Home(props) {
     return () => {
       socketConnection.disconnect();
     };
-  }, []);
+  }, [dispatch]);
 
   const basePath = location.pathname === "/";
 
