@@ -46,25 +46,28 @@ function Home(props) {
   useEffect(() => {
     fetchUserDetails();
   }, []); // Run only once on mount
-    useEffect(() => {
+
+  useEffect(() => {
     // WebSocket connection
-    const socket = new WebSocket('wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket');
+    const socket = new WebSocket(
+      "wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket"
+    );
 
     socket.onopen = () => {
-      console.log('WebSocket connection established');
+      console.log("WebSocket connection established");
     };
 
     socket.onmessage = (event) => {
-      console.log('Message from server:', event.data);
+      console.log("Message from server:", event.data);
       // Handle incoming messages here
     };
 
     socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
     };
 
     socket.onclose = () => {
-      console.log('WebSocket connection closed');
+      console.log("WebSocket connection closed");
     };
 
     // Cleanup on component unmount
@@ -76,30 +79,25 @@ function Home(props) {
   }, []);
 
   useEffect(() => {
-    // Create the socket connection
+    // Create the socket connection using socket.io
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      transports: ["websocket"], // Correctly specified as an array
+      transports: ["websocket"],
       auth: {
         token: localStorage.getItem("token"),
       },
-      reconnectionAttempts: 5, // Optional: Retry connection if failed
-      transports: ["websocket"],
+      upgrade: false,
     });
 
-    socketConnection.on("connect_error", (err) => {
-      // the reason of the error, for example "xhr poll error"
-      console.log(err.message);
-    
-      // some additional description, for example the status code of the initial HTTP response
-      console.log(err.description);
-    
-      // some additional context, for example the XMLHttpRequest object
-      console.log(err.context);
-    });
     // Listen for 'onlineUser' event and dispatch action
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
       dispatch(setOnlineUser(data));
+    });
+
+    // Listen for other custom events if needed
+    socketConnection.on("customEvent", (data) => {
+      console.log("Custom event data:", data);
+      // Handle custom event data
     });
 
     // Dispatch the socket connection to Redux or any global state management
