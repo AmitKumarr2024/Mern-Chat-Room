@@ -5,19 +5,19 @@ const getUserDetailsFromToken = async (token) => {
   try {
     if (!token) {
       return {
-        message: 'session out',
+        message: 'Session out',
         logout: true,
       };
     }
 
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
+
     // Fetch user details from the database
     const user = await UserModel.findById(decoded.id).select('-password');
-    
+
     if (!user) {
-      // User not found, could imply session is invalid
+      // User not found, implies session is invalid
       return {
         message: 'User not found',
         logout: true,
@@ -52,7 +52,6 @@ const getUserDetailsFromToken = async (token) => {
       };
     }
   }
-  
 };
 
 export default getUserDetailsFromToken;
