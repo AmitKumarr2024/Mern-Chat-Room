@@ -52,7 +52,10 @@ export const createSocketConnection = () => {
   });
 
   // Handle disconnection
-  socketConnection.on("disconnect", (reason) => {
+  socketConnection.on("disconnect", (reason,details) => {
+    console.log(details.message);
+    console.log(details.description);
+    console.log(details.context);
     console.warn("Socket disconnected:", reason);
     if (reason === "io server disconnect") {
       console.warn("Server disconnected the client. Attempting to reconnect manually...");
