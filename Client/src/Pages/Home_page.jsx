@@ -26,25 +26,15 @@ function Home(props) {
         withCredentials: true, // Ensure this is correctly spelled and used
       });
 
-      // Check if response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      dispatch(setUser(response.data.data))
 
-      // Parse response data
-      const data = await response.json();
-
-      // Set user details in Redux
-      dispatch(setUser(data.data));
-
-      // Handle logout if session expired
-      if (data.data.logout) {
-        dispatch(logout());
-        navigate("/login");
-      }
-
+      if(response.data.data.logout){
+        dispatch(logout())
+        navigate("/email")
+    }
+    console.log("current user Details",response)
     } catch (error) {
-      console.errror("Error fetching user details:", error);
+      console.errror("Home:", error);
     }
   };
 
@@ -54,8 +44,13 @@ function Home(props) {
 
   useEffect(() => {
     // Create the socket connection
-    const socketConnection = createSocketConnection();
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL,{
+      auth : {
+        token : localStorage.getItem('token')
+      },
+    })
 
+    
     // Listen for 'onlineUser' event and dispatch action
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
@@ -69,7 +64,7 @@ function Home(props) {
     return () => {
       socketConnection.disconnect();
     };
-  }, [dispatch]);
+  }, []);
 
   const basePath = location.pathname === "/";
 

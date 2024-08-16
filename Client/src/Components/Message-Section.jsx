@@ -13,7 +13,7 @@ import Wallpapers from "/wallpaper.jpg";
 import { RiSendPlane2Line } from "react-icons/ri";
 import moment from "moment";
 
-const MessageSection = React.memo(() => {
+const MessageSection = () => {
   const params = useParams();
   const socketConnection = useSelector(
     (state) => state?.user?.socketConnection
@@ -54,14 +54,15 @@ const MessageSection = React.memo(() => {
 
   useEffect(() => {
     if (socketConnection) {
-      socketConnection.emit("message-page", params?.userId);
-      socketConnection.emit("seen", params?.userId);
+      socketConnection.emit("message-page", params.userId);
+      socketConnection.emit("seen", params.userId);
       
       socketConnection.on("message-user", (data) => {
         setUserData(data);
       });
 
       socketConnection.on("message", (data) => {
+        console.log('message data',data)
         setAllMessage(data);
       });
     }
@@ -372,6 +373,6 @@ const MessageSection = React.memo(() => {
       </footer>
     </div>
   );
-});
+};
 
 export default MessageSection;
