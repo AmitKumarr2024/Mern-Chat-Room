@@ -16,9 +16,9 @@ export const createSocketConnection = () => {
     auth: {
       token: token,
     },
-    pingInterval: 1000 * 60 * 5, // 5 minutes
-    pingTimeout: 1000 * 60 * 2, // 2 minutes
-    reconnectionAttempts: 5, // Limit reconnection attempts to 5
+    pingInterval: 1000 * 60 * 1, // 5 minutes
+    pingTimeout: 1000 * 60 * 1, // 2 minutes
+    reconnectionAttempts: 50, // Limit reconnection attempts to 5
     reconnectionDelay: 2000, // Delay between reconnection attempts (2 seconds)
   });
 
