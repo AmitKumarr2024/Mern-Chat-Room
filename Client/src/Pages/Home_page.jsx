@@ -46,9 +46,9 @@ function Home(props) {
   useEffect(() => {
     fetchUserDetails();
   }, []); // Run only once on mount
-  useEffect(() => {
+    useEffect(() => {
     // WebSocket connection
-    const socket = new WebSocket('wss://chat-me-apps-backend.onrender.com/socket.io/');
+    const socket = new WebSocket('wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket');
 
     socket.onopen = () => {
       console.log('WebSocket connection established');
