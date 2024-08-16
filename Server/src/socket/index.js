@@ -66,13 +66,18 @@ io.on("connection", async (socket) => {
       return;
     }
 
-    userDetails = await userDetailsJsonWebToken(token);
-
-    // if (!userDetails || !userDetails._id) {
-    //   console.error("User authentication failed:", userDetails);
-    //   socket.disconnect();
-    //   return;
-    // }
+    try {
+      userDetails = await userDetailsJsonWebToken(token);
+      if (!userDetails || !userDetails._id) {
+        console.error("Invalid token or user details");
+        socket.disconnect();
+        return;
+      }
+    } catch (error) {
+      console.error("Token verification failed:", error);
+      socket.disconnect();
+      return;
+    }
 
     socket.join(userDetails._id.toString());
     onlineUser.add(userDetails._id.toString());
