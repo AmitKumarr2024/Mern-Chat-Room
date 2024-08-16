@@ -25,11 +25,7 @@ const getUserDetailsFromToken = async (token) => {
     }
 
     // Return user details if everything is fine
-    return {
-      user,
-      message: 'User details retrieved successfully',
-      logout: false,
-    };
+    return {user};
   } catch (error) {
   
       console.error('Error in getUserDetailsFromToken:', error);
