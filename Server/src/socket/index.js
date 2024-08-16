@@ -27,6 +27,7 @@ io.engine.on("connection_error", (err) => {
   console.log(err.code);     // the error code, for example 1
   console.log(err.message);  // the error message, for example "Session ID unknown"
   console.log(err.context);  // some additional error context
+  
 });
 
 io.on('connection', async (socket) => {

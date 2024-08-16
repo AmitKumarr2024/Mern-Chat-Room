@@ -63,20 +63,21 @@ function Home(props) {
       // pingTimeout: 1000 * 60 * 3,
     });
 
-    socketConnection.on("onlineUser", (data) => {
-      console.log("Online users:", data);
-      dispatch(setOnlineUser(data));
-    });
-
+    
     socketConnection.on("connect_error", (err) => {
       // the reason of the error, for example "xhr poll error"
       console.log(err.message);
-    
+      
       // some additional description, for example the status code of the initial HTTP response
       console.log(err.description);
-    
+      
       // some additional context, for example the XMLHttpRequest object
       console.log(err.context);
+    });
+    
+    socketConnection.on("onlineUser", (data) => {
+      console.log("Online users:", data);
+      dispatch(setOnlineUser(data));
     });
 
     dispatch(setSocketConnection(socketConnection));
