@@ -27,10 +27,12 @@ function Login_page(props) {
     },
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); // Added loading state
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
+    setLoading(true); // Set loading state to true while processing
     try {
       const response = await axios.post(UserApi.userLogin.url, data, {
         headers: {
@@ -38,18 +40,20 @@ function Login_page(props) {
         },
         withCredentials: true, // Optional, if your server requires credentials
       });
-  
+
       if (response.data.success) {
         dispatch(setToken(response.data.data));
-        localStorage.setItem('token', response.data.data);
+        localStorage.setItem("token", response.data.data);
         toast.success(response.data.message);
-        navigate("/");
+        setTimeout(() => navigate("/"), 500); // Slight delay to ensure everything is saved before navigation
       } else {
-        throw new Error(response.data.message || 'Login failed');
+        throw new Error(response.data.message || "Login failed");
       }
     } catch (error) {
-      console.error("Login error:", error);  // Log the error to the console
+      console.error("Login error:", error); // Log the error to the console
       toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setLoading(false); // Reset loading state once request is complete
     }
   };
 
@@ -159,8 +163,9 @@ function Login_page(props) {
               <button
                 className="px-3 py-1 rounded-md text-white font-semibold uppercase w-full mt-3 border-2 bg-red-600 hover:bg-red-700 transition duration-300"
                 type="submit"
+                disabled={loading} // Disable button when loading
               >
-                Login
+                {loading ? "Logging in..." : "Login"} {/* Show loading text */}
               </button>
             </form>
           </section>
