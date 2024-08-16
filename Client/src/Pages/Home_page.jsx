@@ -85,7 +85,7 @@ function Home(props) {
       auth: {
         token: localStorage.getItem("token"),
       },
-      upgrade: false,
+      upgrade: true,
     });
 
     // Listen for 'onlineUser' event and dispatch action
