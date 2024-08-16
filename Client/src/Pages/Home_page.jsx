@@ -11,6 +11,7 @@ import {
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
 import io from "socket.io-client";
+import { createSocketConnection } from "../helper/createSocketConnection ";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
@@ -52,34 +53,19 @@ function Home(props) {
   }, []); // Run only once on mount
 
   useEffect(() => {
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
-      auth: {
-        token: localStorage.getItem("token"),
-      },
-      transports: ["websocket","polling"],
-      pingInterval: 1000 * 60 * 10, // 10 minutes
-      pingTimeout: 1000 * 60 * 5,   // 5 minutes
-    });
+    // Create the socket connection
+    const socketConnection = createSocketConnection();
 
-    
-    socketConnection.on("connect_error", (err) => {
-      // the reason of the error, for example "xhr poll error"
-      console.log(err.message);
-      
-      // some additional description, for example the status code of the initial HTTP response
-      console.log(err.description);
-      
-      // some additional context, for example the XMLHttpRequest object
-      console.log(err.context);
-    });
-
+    // Listen for 'onlineUser' event and dispatch action
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
       dispatch(setOnlineUser(data));
     });
 
+    // Dispatch the socket connection to Redux or any global state management
     dispatch(setSocketConnection(socketConnection));
 
+    // Cleanup the connection when component unmounts
     return () => {
       socketConnection.disconnect();
     };
