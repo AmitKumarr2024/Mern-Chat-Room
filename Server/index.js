@@ -17,7 +17,8 @@ app.use(cookieParser());
 // CORS middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URLS.split(','), // Split to handle multiple origins if needed
+    origin: process.env.FRONTEND_URLS, // Split to handle multiple origins if needed
+    methods: ["GET", "POST"],
     credentials: true,
   })
 );

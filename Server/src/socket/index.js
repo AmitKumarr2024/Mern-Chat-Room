@@ -11,7 +11,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS.split(','), // Allows multiple frontend URLs
+    origin: process.env.FRONTEND_URLS, // Allows multiple frontend URLs
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   },
@@ -27,7 +27,7 @@ io.engine.on("connection_error", (err) => {
   console.log(err.code);     // the error code, for example 1
   console.log(err.message);  // the error message, for example "Session ID unknown"
   console.log(err.context);  // some additional error context
-  
+
 });
 
 io.on('connection', async (socket) => {
