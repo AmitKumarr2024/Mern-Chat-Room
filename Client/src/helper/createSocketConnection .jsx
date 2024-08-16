@@ -36,14 +36,14 @@ export const createSocketConnection = () => {
     }
   });
 
-  socket.on("connect", () => {
+  socketConnection.on("connect", () => {
     const transport = socket.io.engine.transport.name; // in most cases, "polling"
   
-    socket.io.engine.on("upgrade", () => {
+    socketConnection.io.engine.on("upgrade", () => {
       const upgradedTransport = socket.io.engine.transport.name; // in most cases, "websocket"
     });
   });
-  
+
   // Listen for successful reconnection
   socketConnection.on("reconnect", (attemptNumber) => {
     console.log(`Reconnected successfully after ${attemptNumber} attempts`);
