@@ -58,9 +58,9 @@ function Home(props) {
       auth: {
         token: localStorage.getItem("token"),
       },
-      // transports: ["websocket"],
-      // pingInterval: 1000 * 60 * 5,
-      // pingTimeout: 1000 * 60 * 3,
+      transports: ["websocket"],
+      pingInterval: 1000 * 60 * 5,
+      pingTimeout: 60000,
     });
 
     
@@ -74,7 +74,7 @@ function Home(props) {
       // some additional context, for example the XMLHttpRequest object
       console.log(err.context);
     });
-    
+
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
       dispatch(setOnlineUser(data));
