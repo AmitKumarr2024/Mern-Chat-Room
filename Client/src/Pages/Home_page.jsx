@@ -11,8 +11,6 @@ import {
 import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
 import io from "socket.io-client";
-import { createSocketConnection } from "../helper/createSocketConnection ";
-import axios from "axios";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
@@ -20,60 +18,72 @@ function Home(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-
- 
-
   const fetchUserDetails = async () => {
     try {
-      const response = await axios.get(UserApi.userDetails.url, {
-        withCredentials: true, // Send cookies with request
+      const response = await fetch(UserApi.userDetails.url, {
+        credentials: "include", // Ensure this is correctly used for credentials
       });
-  
-      if (response.data) {
-        dispatch(setUser(response.data.data));
-  
-        if (response.data.data.logout) {
-          dispatch(logout());
-          navigate("/login");
-        }
-  
-        console.log("Current user details:", response.data);
-      } else {
-        console.error("Unexpected response structure:", response.data);
+
+      const data = await response.json(); // Extract JSON data
+
+      dispatch(setUser(data.data));
+
+      if (data.data.logout) {
+        dispatch(logout());
+        navigate("/login");
       }
+      console.log("Current user details", data);
     } catch (error) {
       console.error("Home:", error);
     }
   };
-  
 
   useEffect(() => {
     fetchUserDetails();
   }, []); // Run only once on mount
 
   useEffect(() => {
-    // Create the socket connection
-    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL,{
-      auth : {
-        token : localStorage.getItem('token')
-      },
-    })
+    // WebSocket connection setup
+    const address = "wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket&sid=LY0LxwUPmYxIUkFtAAAI";
+    const webSocket = new WebSocket(address);
 
-    
-    // Listen for 'onlineUser' event and dispatch action
+    webSocket.onopen = () => {
+      console.log("WebSocket connection opened.");
+    };
+
+    webSocket.onmessage = (event) => {
+      console.log("Message from WebSocket:", event.data);
+      // Handle WebSocket messages if needed
+    };
+
+    webSocket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    // Socket.io connection setup
+    const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+      auth: {
+        token: localStorage.getItem("token"),
+      },
+    });
+
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
       dispatch(setOnlineUser(data));
     });
 
-    // Dispatch the socket connection to Redux or any global state management
     dispatch(setSocketConnection(socketConnection));
 
-    // Cleanup the connection when component unmounts
+    // Cleanup connections on component unmount
     return () => {
+      if (webSocket.readyState === WebSocket.OPEN) {
+        webSocket.close();
+        console.log("WebSocket connection closed.");
+      }
       socketConnection.disconnect();
+      console.log("Socket.io connection disconnected.");
     };
-  }, []);
+  }, [dispatch]);
 
   const basePath = location.pathname === "/";
 
