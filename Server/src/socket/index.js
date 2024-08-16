@@ -51,7 +51,7 @@ io.engine.on("connection_error", (err) => {
 });
 
 io.on("connection", async (socket) => {
-  console.log("User-connected :", socket.id);
+  console.log("User-connected ::", socket.id);
 
   const token = socket.handshake.auth.token;
 
