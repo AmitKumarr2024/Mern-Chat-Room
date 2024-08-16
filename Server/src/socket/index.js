@@ -22,22 +22,12 @@ if (!process.env.FRONTEND_URLS) {
 
 const app = express();
 
-
-// Configure CORS
-app.use(
-  cors({
-    origin:"http://localhost:5173/",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
+    origin:"http://localhost:5173/",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
 });
