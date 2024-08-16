@@ -27,20 +27,10 @@ app.use(cookieParser());
 //   methods: ["GET", "POST"],
 //   credentials: true,
 // }));
-const allowedOrigins = "http://localhost:5173";
-
-// Configure CORS
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin:"http://localhost:5173/",
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
