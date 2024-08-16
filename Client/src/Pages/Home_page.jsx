@@ -46,6 +46,34 @@ function Home(props) {
   useEffect(() => {
     fetchUserDetails();
   }, []); // Run only once on mount
+  useEffect(() => {
+    // WebSocket connection
+    const socket = new WebSocket('wss://chat-me-apps-backend.onrender.com/socket.io/');
+
+    socket.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+
+    socket.onmessage = (event) => {
+      console.log('Message from server:', event.data);
+      // Handle incoming messages here
+    };
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    // Cleanup on component unmount
+    return () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Create the socket connection
@@ -54,6 +82,8 @@ function Home(props) {
       auth: {
         token: localStorage.getItem("token"),
       },
+      reconnectionAttempts: 5, // Optional: Retry connection if failed
+      transports: ["websocket"],
     });
 
     socketConnection.on("connect_error", (err) => {
