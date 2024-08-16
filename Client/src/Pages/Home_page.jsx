@@ -23,7 +23,7 @@ function Home(props) {
   const fetchUserDetails = async () => {
     try {
       const response = await fetch(UserApi.userDetails.url, {
-        credentials: "include", // Ensure this is correctly spelled and used
+        withCredentials: true, // Ensure this is correctly spelled and used
       });
 
       // Check if response is ok
