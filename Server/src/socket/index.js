@@ -34,8 +34,7 @@ const io = new Server(server, {
   pingTimeout: 60000,  // How long to wait for a pong before closing
   cors: {
     origin: process.env.FRONTEND_URLS,
-    methods: ["GET", "POST"],
-    credentials: true,
+   
 
     // origin: (origin, callback) => {
     //   if (!origin || allowedOrigins.includes(origin)) {
