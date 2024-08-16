@@ -12,6 +12,7 @@ import Section from "../Components/Section";
 import Logo from "../Assets/chatmeapp2.jpg";
 import io from "socket.io-client";
 import { createSocketConnection } from "../helper/createSocketConnection ";
+import axios from "axios";
 
 function Home(props) {
   const user = useSelector((state) => state.user);
@@ -20,23 +21,31 @@ function Home(props) {
   const navigate = useNavigate();
 
 
+ 
+
   const fetchUserDetails = async () => {
     try {
-      const response = await fetch(UserApi.userDetails.url, {
-        withCredentials: true, // Ensure this is correctly spelled and used
+      const response = await axios.get(UserApi.userDetails.url, {
+        withCredentials: true, // Send cookies with request
       });
-
-      dispatch(setUser(response.data.data))
-
-      if(response.data.data.logout){
-        dispatch(logout())
-        navigate("/login")
-    }
-    console.log("current user Details",response)
+  
+      if (response.data) {
+        dispatch(setUser(response.data.data));
+  
+        if (response.data.data.logout) {
+          dispatch(logout());
+          navigate("/login");
+        }
+  
+        console.log("Current user details:", response.data);
+      } else {
+        console.error("Unexpected response structure:", response.data);
+      }
     } catch (error) {
       console.error("Home:", error);
     }
   };
+  
 
   useEffect(() => {
     fetchUserDetails();
