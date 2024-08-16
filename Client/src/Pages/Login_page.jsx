@@ -38,14 +38,17 @@ function Login_page(props) {
         },
         withCredentials: true, // Optional, if your server requires credentials
       });
-
+  
       if (response.data.success) {
         dispatch(setToken(response.data.data));
         localStorage.setItem('token', response.data.data);
         toast.success(response.data.message);
         navigate("/");
+      } else {
+        throw new Error(response.data.message || 'Login failed');
       }
     } catch (error) {
+      console.error("Login error:", error);  // Log the error to the console
       toast.error(error.response?.data?.message || error.message);
     }
   };
