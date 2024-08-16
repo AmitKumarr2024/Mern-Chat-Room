@@ -58,7 +58,7 @@ function Home(props) {
       auth: {
         token: localStorage.getItem("token"),
       },
-      transports: ["websocket"],
+      transports: ["websocket","polling"],
       pingInterval: 1000 * 60 * 5,
       pingTimeout: 60000,
     });
