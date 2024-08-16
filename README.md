@@ -1,3 +1,3 @@
-Mern chat app 
-## a simple two way communication with using technology of socket.io 
+## Mern chat app 
+### A simple two way communication with using technology of socket.io 
 
