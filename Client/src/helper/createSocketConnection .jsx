@@ -11,14 +11,16 @@ export const createSocketConnection = () => {
 
   // Create the socket connection with backend URL from environment variables
   const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+    path: "/socket.io",
+    transport: ["websocket"],
     auth: {
       token: token,
     },
     transports: ["websocket", "polling"],
     pingInterval: 1000 * 60 * 10, // 10 minutes
-    pingTimeout: 1000 * 60 * 5,   // 5 minutes
-    reconnectionAttempts: 5,      // Limit reconnection attempts to 5
-    reconnectionDelay: 2000,      // Delay between reconnection attempts (2 seconds)
+    pingTimeout: 1000 * 60 * 5, // 5 minutes
+    reconnectionAttempts: 5, // Limit reconnection attempts to 5
+    reconnectionDelay: 2000, // Delay between reconnection attempts (2 seconds)
   });
 
   // Listen for connection errors and log them
