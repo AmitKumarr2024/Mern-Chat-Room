@@ -2,8 +2,6 @@
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import cors from "cors";
-import dotenv from "dotenv";
 import userDetailsJsonWebToken from "../middleware/userDetailsJsonWebToken.js";
 import UserModel from "../context/Users/User_model.js";
 import {
@@ -11,9 +9,6 @@ import {
   MessageModel,
 } from "../context/Conversation/Conversation_model.js";
 import getConversation from "../middleware/getConversation.js";
-
-// Load environment variables from .env file
-dotenv.config();
 
 // Ensure necessary environment variables are set
 if (!process.env.FRONTEND_URLS) {
@@ -31,23 +26,23 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   pingInterval: 25000, // How often pings are sent
-  pingTimeout: 60000,  // How long to wait for a pong before closing
+  pingTimeout: 60000, // How long to wait for a pong before closing
   cors: {
-    origin: process.env.FRONTEND_URLS.split(','),
-   
-
-    // origin: (origin, callback) => {
-    //   if (!origin || allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error("Not allowed by CORS"));
-    //   }
-    // },
-    // methods: ["GET", "POST", "PUT", "DELETE"],
-    // allowedHeaders: ["Content-Type", "Authorization"],
-    // credentials: true,
+    origin: process.env.FRONTEND_URLS.split(","),
+    credentials: true,
   },
 });
+
+// origin: (origin, callback) => {
+//   if (!origin || allowedOrigins.includes(origin)) {
+//     callback(null, true);
+//   } else {
+//     callback(new Error("Not allowed by CORS"));
+//   }
+// },
+// methods: ["GET", "POST", "PUT", "DELETE"],
+// allowedHeaders: ["Content-Type", "Authorization"],
+// credentials: true,
 
 const onlineUser = new Set();
 
@@ -56,36 +51,20 @@ io.engine.on("connection_error", (err) => {
 });
 
 io.on("connection", async (socket) => {
-  console.log("User connected: ", socket.id);
-  let userDetails;
+  console.log("User-connected :", socket.id);
+
+  const token = socket.handshake.auth.token;
 
   try {
-    const token = socket.handshake.auth?.token;
-    if (!token) {
-      console.error("Token missing from handshake");
-      socket.disconnect();
-      return;
-    }
+    const userDetails = await userDetailsJsonWebToken(token);
 
-    try {
-      userDetails = await userDetailsJsonWebToken(token);
-      if (!userDetails || !userDetails._id) {
-        console.error("Invalid token or user details");
-        socket.disconnect();
-        return;
-      }
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      socket.disconnect();
-      return;
-    }
-
-    socket.join(userDetails._id.toString());
-    onlineUser.add(userDetails._id.toString());
+    socket.join(userDetails?._id.toString());
+    onlineUser.add(userDetails?._id.toString());
     io.emit("onlineUser", Array.from(onlineUser));
 
     // Event listeners
     socket.on("message-page", async (userId) => {
+      console.log("userId", userId);
       try {
         const otherUserDetails = await UserModel.findById(userId).select(
           "-password"
@@ -93,11 +72,11 @@ io.on("connection", async (socket) => {
         if (!otherUserDetails) return;
 
         const payload = {
-          _id: otherUserDetails._id,
-          name: otherUserDetails.name,
-          profile_pic: otherUserDetails.profile_pic,
-          email: otherUserDetails.email,
-          phone: otherUserDetails.phone,
+          _id: otherUserDetails?._id,
+          name: otherUserDetails?.name,
+          profile_pic: otherUserDetails?.profile_pic,
+          email: otherUserDetails?.email,
+          phone: otherUserDetails?.phone,
           online: onlineUser.has(userId),
         };
 
@@ -209,11 +188,8 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("disconnect", () => {
-    if (userDetails && userDetails._id) {
-      onlineUser.delete(userDetails._id.toString());
-      io.emit("onlineUser", Array.from(onlineUser));
-      console.log("User disconnected:", socket.id);
-    }
+    onlineUser.delete(userDetails?._id?.toString());
+    console.log("User disconnected:", socket.id);
   });
 });
 
