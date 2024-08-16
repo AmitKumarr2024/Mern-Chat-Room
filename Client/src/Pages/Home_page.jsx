@@ -47,36 +47,36 @@ function Home(props) {
     fetchUserDetails();
   }, []); // Run only once on mount
 
-  useEffect(() => {
-    // WebSocket connection
-    const socket = new WebSocket(
-      "wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket"
-    );
+  // useEffect(() => {
+  //   // WebSocket connection
+  //   const socket = new WebSocket(
+  //     "wss://chat-me-apps-backend.onrender.com/socket.io/?EIO=4&transport=websocket"
+  //   );
 
-    socket.onopen = () => {
-      console.log("WebSocket connection established");
-    };
+  //   socket.onopen = () => {
+  //     console.log("WebSocket connection established");
+  //   };
 
-    socket.onmessage = (event) => {
-      console.log("Message from server:", event.data);
-      // Handle incoming messages here
-    };
+  //   socket.onmessage = (event) => {
+  //     console.log("Message from server:", event.data);
+  //     // Handle incoming messages here
+  //   };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+  //   socket.onerror = (error) => {
+  //     console.error("WebSocket error:", error);
+  //   };
 
-    socket.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
+  //   socket.onclose = () => {
+  //     console.log("WebSocket connection closed");
+  //   };
 
-    // Cleanup on component unmount
-    return () => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
-    };
-  }, []);
+  //   // Cleanup on component unmount
+  //   return () => {
+  //     if (socket.readyState === WebSocket.OPEN) {
+  //       socket.close();
+  //     }
+  //   };
+  // }, []);
 
   useEffect(() => {
     // Create the socket connection using socket.io
