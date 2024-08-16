@@ -82,11 +82,11 @@ function Home(props) {
     // Create the socket connection using socket.io
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
       transports: ["websocket"],
+      pingInterval: 25000,
+      pingTimeout: 60000,
       auth: {
         token: localStorage.getItem("token"),
       },
-      pingInterval: 25000, // Send pings every 25 seconds
-      pingTimeout: 20000,  // Connection closes if no pong is received in 20 seconds
     });
 
     // Listen for 'onlineUser' event and dispatch action

@@ -30,6 +30,8 @@ const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
+  pingInterval: 25000, // How often pings are sent
+  pingTimeout: 60000,  // How long to wait for a pong before closing
   cors: {
     origin: process.env.FRONTEND_URLS,
     methods: ["GET", "POST"],
