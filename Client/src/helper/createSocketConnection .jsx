@@ -14,7 +14,7 @@ export const createSocketConnection = () => {
     path: "/socket.io",
     transport: ["websocket", "polling"], // Removed duplicate
     auth: {
-      token: token,
+      token: localStorage.getItem('token'),
     },
     pingInterval: 1000 * 60 * 1, // 5 minutes
     pingTimeout: 1000 * 60 * 1, // 2 minutes
