@@ -12,25 +12,28 @@ export const createSocketConnection = () => {
   // Create the socket connection with backend URL from environment variables
   const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
     path: "/socket.io",
-    transport: ["websocket"],
+    transport: ["websocket", "polling"], // Removed duplicate
     auth: {
       token: token,
     },
-    transports: ["websocket", "polling"],
-    pingInterval: 1000 * 60 * 10, // 10 minutes
-    pingTimeout: 1000 * 60 * 5, // 5 minutes
+    pingInterval: 1000 * 60 * 5, // 5 minutes
+    pingTimeout: 1000 * 60 * 2, // 2 minutes
     reconnectionAttempts: 5, // Limit reconnection attempts to 5
     reconnectionDelay: 2000, // Delay between reconnection attempts (2 seconds)
   });
 
   // Listen for connection errors and log them
   socketConnection.on("connect_error", (err) => {
-    console.error("Connection error:", err.message);
+    console.error("Connection error:", err.message || "Unknown error");
     if (err.message === "invalid_token") {
       console.error("Invalid token, please re-authenticate.");
     }
-    console.error("Description:", err.description);
-    console.error("Context:", err.context);
+    if (err.description) {
+      console.error("Description:", err.description);
+    }
+    if (err.context) {
+      console.error("Context:", err.context);
+    }
   });
 
   // Listen for successful reconnection
@@ -52,7 +55,7 @@ export const createSocketConnection = () => {
   socketConnection.on("disconnect", (reason) => {
     console.warn("Socket disconnected:", reason);
     if (reason === "io server disconnect") {
-      // The disconnection was initiated by the server, you may want to reconnect manually here
+      console.warn("Server disconnected the client. Attempting to reconnect manually...");
       socketConnection.connect(); // Attempt to reconnect manually
     }
   });
