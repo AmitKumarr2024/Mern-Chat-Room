@@ -11,7 +11,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS, // Allows multiple frontend URLs
+    origin: process.env.FRONTEND_URLS.split(','), // Allows multiple frontend URLs
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   },
