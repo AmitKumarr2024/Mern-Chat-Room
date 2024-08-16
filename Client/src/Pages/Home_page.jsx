@@ -85,7 +85,9 @@ function Home(props) {
       auth: {
         token: localStorage.getItem("token"),
       },
-      upgrade: true,
+      pingInterval: 25000, // Server sends ping every 25 seconds
+      pingTimeout: 20000, // Client must respond to ping within 20 seconds
+      maxHttpBufferSize: 1e6, // Payload limit
     });
 
     // Listen for 'onlineUser' event and dispatch action
