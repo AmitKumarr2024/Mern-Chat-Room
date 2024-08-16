@@ -12,7 +12,7 @@ export const createSocketConnection = () => {
   // Create the socket connection with backend URL from environment variables
   const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
     path: "/socket.io",
-    transport: ["websocket", "polling"], // Removed duplicate
+    transport: ["websocket"], // Removed duplicate
     auth: {
       token: localStorage.getItem('token'),
     },
@@ -36,6 +36,14 @@ export const createSocketConnection = () => {
     }
   });
 
+  socket.on("connect", () => {
+    const transport = socket.io.engine.transport.name; // in most cases, "polling"
+  
+    socket.io.engine.on("upgrade", () => {
+      const upgradedTransport = socket.io.engine.transport.name; // in most cases, "websocket"
+    });
+  });
+  
   // Listen for successful reconnection
   socketConnection.on("reconnect", (attemptNumber) => {
     console.log(`Reconnected successfully after ${attemptNumber} attempts`);

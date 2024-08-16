@@ -1,54 +1,67 @@
+// Import necessary modules
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import cors from "cors"; // Ensure CORS middleware is used
+import cors from "cors";
+import dotenv from "dotenv";
 import userDetailsJsonWebToken from "../middleware/userDetailsJsonWebToken.js";
 import UserModel from "../context/Users/User_model.js";
-import { ConversationModel, MessageModel } from "../context/Conversation/Conversation_model.js";
+import {
+  ConversationModel,
+  MessageModel,
+} from "../context/Conversation/Conversation_model.js";
 import getConversation from "../middleware/getConversation.js";
+
+// Load environment variables from .env file
+dotenv.config();
+
+// Ensure necessary environment variables are set
+if (!process.env.FRONTEND_URLS) {
+  throw new Error("FRONTEND_URLS environment variable is not set");
+}
 
 const app = express();
 
 // CORS configuration
-const allowedOrigins = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : [];
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST"],
-  credentials: true,
-}));
+const allowedOrigins = process.env.FRONTEND_URLS.split(",");
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS.split(','),
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
-
 const onlineUser = new Set();
 
 io.engine.on("connection_error", (err) => {
-  console.error('Connection error details:', err);
+  console.error("Connection error details:", err);
 });
 
-io.on('connection', async (socket) => {
+io.on("connection", async (socket) => {
   console.log("User connected: ", socket.id);
   let userDetails;
 
   try {
     const token = socket.handshake.auth?.token;
     if (!token) {
-      console.error('Token missing from handshake');
+      console.error("Token missing from handshake");
       socket.disconnect();
       return;
     }
@@ -56,18 +69,21 @@ io.on('connection', async (socket) => {
     userDetails = await userDetailsJsonWebToken(token);
 
     if (!userDetails || !userDetails._id) {
-      console.error('User authentication failed or userDetails._id is undefined:', userDetails);
+      console.error("User authentication failed:", userDetails);
       socket.disconnect();
       return;
     }
 
     socket.join(userDetails._id.toString());
     onlineUser.add(userDetails._id.toString());
-    io.emit('onlineUser', Array.from(onlineUser));
+    io.emit("onlineUser", Array.from(onlineUser));
 
-    socket.on('message-page', async (userId) => {
+    // Event listeners
+    socket.on("message-page", async (userId) => {
       try {
-        const otherUserDetails = await UserModel.findById(userId).select('-password');
+        const otherUserDetails = await UserModel.findById(userId).select(
+          "-password"
+        );
         if (!otherUserDetails) return;
 
         const payload = {
@@ -79,22 +95,24 @@ io.on('connection', async (socket) => {
           online: onlineUser.has(userId),
         };
 
-        socket.emit('message-user', payload);
+        socket.emit("message-user", payload);
 
         const conversation = await ConversationModel.findOne({
           $or: [
             { sender: userDetails._id, receiver: userId },
             { sender: userId, receiver: userDetails._id },
           ],
-        }).populate('messages').sort({ updatedAt: -1 });
+        })
+          .populate("messages")
+          .sort({ updatedAt: -1 });
 
-        socket.emit('message', conversation ? conversation.messages : []);
+        socket.emit("message", conversation ? conversation.messages : []);
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error("Error fetching messages:", error);
       }
     });
 
-    socket.on('new-message', async (data) => {
+    socket.on("new-message", async (data) => {
       try {
         let conversation = await ConversationModel.findOne({
           $or: [
@@ -129,31 +147,33 @@ io.on('connection', async (socket) => {
             { sender: data.sender, receiver: data.receiver },
             { sender: data.receiver, receiver: data.sender },
           ],
-        }).populate('messages').sort({ updatedAt: -1 });
+        })
+          .populate("messages")
+          .sort({ updatedAt: -1 });
 
-        io.to(data.sender).emit('message', updatedConversation.messages);
-        io.to(data.receiver).emit('message', updatedConversation.messages);
+        io.to(data.sender).emit("message", updatedConversation.messages);
+        io.to(data.receiver).emit("message", updatedConversation.messages);
 
         const sidebarSender = await getConversation(data.sender);
         const sidebarReceiver = await getConversation(data.receiver);
 
-        io.to(data.sender).emit('conversation', sidebarSender);
-        io.to(data.receiver).emit('conversation', sidebarReceiver);
+        io.to(data.sender).emit("conversation", sidebarSender);
+        io.to(data.receiver).emit("conversation", sidebarReceiver);
       } catch (error) {
-        console.error('Error processing new message:', error);
+        console.error("Error processing new message:", error);
       }
     });
 
-    socket.on('sidebar', async (currentUserId) => {
+    socket.on("sidebar", async (currentUserId) => {
       try {
         const conversation = await getConversation(currentUserId);
-        socket.emit('conversation', conversation);
+        socket.emit("conversation", conversation);
       } catch (error) {
-        console.error('Error fetching sidebar:', error);
+        console.error("Error fetching sidebar:", error);
       }
     });
 
-    socket.on('seen', async (msgByUserId) => {
+    socket.on("seen", async (msgByUserId) => {
       try {
         const conversation = await ConversationModel.findOne({
           $or: [
@@ -171,23 +191,22 @@ io.on('connection', async (socket) => {
         const sidebarSender = await getConversation(userDetails._id.toString());
         const sidebarReceiver = await getConversation(msgByUserId);
 
-        io.to(userDetails._id.toString()).emit('conversation', sidebarSender);
-        io.to(msgByUserId).emit('conversation', sidebarReceiver);
+        io.to(userDetails._id.toString()).emit("conversation", sidebarSender);
+        io.to(msgByUserId).emit("conversation", sidebarReceiver);
       } catch (error) {
-        console.error('Error marking messages as seen:', error);
+        console.error("Error marking messages as seen:", error);
       }
     });
-
   } catch (error) {
-    console.error('Connection error:', error);
+    console.error("Connection error:", error);
     socket.disconnect();
   }
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     if (userDetails && userDetails._id) {
       onlineUser.delete(userDetails._id.toString());
-      io.emit('onlineUser', Array.from(onlineUser));
-      console.log('User disconnected:', socket.id);
+      io.emit("onlineUser", Array.from(onlineUser));
+      console.log("User disconnected:", socket.id);
     }
   });
 });
