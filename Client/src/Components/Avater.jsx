@@ -42,10 +42,9 @@ function Avater({ userId, imageUrl, name, height, width }) {
   ];
 
   // Get a random background color
-  const randomColor = useMemo(
-    () => Math.floor(Math.random() * bgColor.length),
-    []
-  );
+  const randomColor = useMemo(() => {
+    return bgColor[Math.floor(Math.random() * bgColor.length)];
+  }, []);
 
   // console.log("Current imageUrl:", imageUrl);
 
