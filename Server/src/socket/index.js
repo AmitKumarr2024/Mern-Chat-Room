@@ -23,12 +23,21 @@ if (!process.env.FRONTEND_URLS) {
 const app = express();
 
 // CORS configuration
+const allowedOrigins = process.env.FRONTEND_URLS ? "http://localhost:5173/" : [];
+
+// Configure CORS
 app.use(
   cors({
-    origin: process.env.FRONTEND_URLS ? "http://localhost:5173/" : [],
-    methods: "GET, POST, PUT, DELETE",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
+    credentials: true,
   })
 );
 
