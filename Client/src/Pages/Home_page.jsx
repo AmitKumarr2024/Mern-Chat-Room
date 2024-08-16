@@ -18,7 +18,6 @@ function Home(props) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log("redux user", user);
 
   const fetchUserDetails = async () => {
     try {
@@ -43,9 +42,8 @@ function Home(props) {
         navigate("/login");
       }
 
-      console.log("User details response:", data);
     } catch (error) {
-      console.log("Error fetching user details:", error);
+      console.errror("Error fetching user details:", error);
     }
   };
 
