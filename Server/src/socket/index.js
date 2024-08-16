@@ -68,11 +68,11 @@ io.on("connection", async (socket) => {
 
     userDetails = await userDetailsJsonWebToken(token);
 
-    if (!userDetails || !userDetails._id) {
-      console.error("User authentication failed:", userDetails);
-      socket.disconnect();
-      return;
-    }
+    // if (!userDetails || !userDetails._id) {
+    //   console.error("User authentication failed:", userDetails);
+    //   socket.disconnect();
+    //   return;
+    // }
 
     socket.join(userDetails._id.toString());
     onlineUser.add(userDetails._id.toString());
