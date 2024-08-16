@@ -30,11 +30,11 @@ function Home(props) {
 
       if(response.data.data.logout){
         dispatch(logout())
-        navigate("/email")
+        navigate("/login")
     }
     console.log("current user Details",response)
     } catch (error) {
-      console.errror("Home:", error);
+      console.error("Home:", error);
     }
   };
 

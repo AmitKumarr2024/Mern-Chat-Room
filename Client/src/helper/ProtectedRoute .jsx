@@ -4,7 +4,7 @@ const ProtectedRoute = ({ children }) => {
   // Check if token is present in localStorage
   const token = localStorage.getItem("token");
 
-  console.log("token is available",token);
+  console.log("token is available pro",token);
   
   
   // If the token is missing, navigate to the login page
