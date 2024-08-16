@@ -105,7 +105,7 @@ export const userLogin = async (req, res) => {
       email: user.email,
     };
 
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY, { expiresIn : '1d'});
 
     const cookieOptions = {
       httpOnly: true,
@@ -113,6 +113,7 @@ export const userLogin = async (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       path: "/", // Ensure the path is set correctly
       domain: process.env.FRONTEND_URLS, // Adjust if necessary for your environment
+      secure : true
     };
 
     res.cookie("token", token, cookieOptions).status(200).json({

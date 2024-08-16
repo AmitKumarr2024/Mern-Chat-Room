@@ -7,26 +7,29 @@ import UserRoute from "./src/context/Users/User_router.js";
 import cookieParser from "cookie-parser";
 import { app, server } from "./src/socket/index.js";
 
-
+app.use(cors({
+  origin : process.env.FRONTEND_URLS,
+  credentials : true
+}))
 
 app.use(express.json());
 app.use(cookieParser());
 
 
 
-// CORS middleware
-const allowedOrigins = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : [];
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST"],
-  credentials: true,
-}));
+// // CORS middleware
+// const allowedOrigins = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : [];
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: ["GET", "POST"],
+//   credentials: true,
+// }));
 
 
 
@@ -43,7 +46,7 @@ app.use("/api/users", UserRoute);
 // Connect to MongoDB and start the server
 mongodb()
   .then(() => {
-    const port = process.env.PORT || 5000;  // Default to port 5000 if PORT is not defined
+    const port = process.env.PORT || 8000;  // Default to port 5000 if PORT is not defined
     server.listen(port, () => {
       console.log(`Server is running at port: ${port}`);
     });

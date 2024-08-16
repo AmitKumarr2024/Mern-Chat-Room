@@ -31,26 +31,13 @@ const getUserDetailsFromToken = async (token) => {
       logout: false,
     };
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      // Invalid token
-      return {
-        message: 'Invalid token',
-        logout: true,
-      };
-    } else if (error.name === 'TokenExpiredError') {
-      // Token has expired
-      return {
-        message: 'Token expired',
-        logout: true,
-      };
-    } else {
-      // General error
+  
       console.error('Error in getUserDetailsFromToken:', error);
       return {
         message: 'An error occurred',
         logout: true,
       };
-    }
+    
   }
 };
 
