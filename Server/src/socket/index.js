@@ -1,19 +1,40 @@
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
+import cors from "cors"; // Ensure CORS middleware is used
 import userDetailsJsonWebToken from "../middleware/userDetailsJsonWebToken.js";
 import UserModel from "../context/Users/User_model.js";
 import { ConversationModel, MessageModel } from "../context/Conversation/Conversation_model.js";
 import getConversation from "../middleware/getConversation.js";
 
 const app = express();
+
+// CORS configuration
+const allowedOrigins = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : '*';
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // If allowedOrigins is '*', allow all origins
+    if (allowedOrigins === '*') {
+      callback(null, true);
+    } else if (allowedOrigins.includes(origin) || !origin) {
+      // If the origin is in the list or no origin (for non-browser clients like Postman)
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST"],
+  credentials: true,
+}));
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URLS.split(','), // Allows multiple frontend URLs
+    origin: process.env.FRONTEND_URLS.split(','),
     methods: ["GET", "POST"],
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    credentials: true,
   },
 });
 
@@ -21,13 +42,8 @@ console.log('FRONTEND_URLS:', process.env.FRONTEND_URLS);
 
 const onlineUser = new Set();
 
-
 io.engine.on("connection_error", (err) => {
-  console.log(err.req);      // the request object
-  console.log(err.code);     // the error code, for example 1
-  console.log(err.message);  // the error message, for example "Session ID unknown"
-  console.log(err.context);  // some additional error context
-
+  console.error('Connection error details:', err);
 });
 
 io.on('connection', async (socket) => {

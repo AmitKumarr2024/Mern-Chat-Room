@@ -15,13 +15,23 @@ app.use(cookieParser());
 
 
 // CORS middleware
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URLS.split(','), // Split to handle multiple origins if needed
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+const allowedOrigins = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : '*';
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // If allowedOrigins is '*', allow all origins
+    if (allowedOrigins === '*') {
+      callback(null, true);
+    } else if (allowedOrigins.includes(origin) || !origin) {
+      // If the origin is in the list or no origin (for non-browser clients like Postman)
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST"],
+  credentials: true,
+}));
 
 app.use((req, res, next) => {
   console.log('Method:', req.method);
