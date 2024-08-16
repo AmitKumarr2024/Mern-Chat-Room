@@ -50,13 +50,11 @@ function Home(props) {
   useEffect(() => {
     // Create the socket connection
     const socketConnection = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, {
+      transports: ["websocket"], // Correctly specified as an array
       auth: {
         token: localStorage.getItem("token"),
       },
-      upgrade: false,
-      transports: "websocket",
     });
-
     // Listen for 'onlineUser' event and dispatch action
     socketConnection.on("onlineUser", (data) => {
       console.log("Online users:", data);
