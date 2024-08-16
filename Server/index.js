@@ -9,6 +9,7 @@ import { app, server } from "./src/socket/index.js";
 
 app.use(cors({
   origin : process.env.FRONTEND_URLS,
+  methods: ["GET", "POST"],
   credentials : true
 }))
 
