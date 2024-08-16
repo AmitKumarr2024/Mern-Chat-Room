@@ -27,7 +27,7 @@ app.use(cookieParser());
 //   methods: ["GET", "POST"],
 //   credentials: true,
 // }));
-const allowedOrigins = process.env.FRONTEND_URLS.split(',') ? "http://localhost:5173" : [];
+const allowedOrigins = "http://localhost:5173";
 
 // Configure CORS
 app.use(
