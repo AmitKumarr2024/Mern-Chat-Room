@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import { app, server } from "./src/socket/index.js";
 
 app.use(cors({
-  origin : process.env.FRONTEND_URLS,
+  origin : process.env.FRONTEND_URLS.split(','),
   methods: ["GET", "POST"],
   credentials : true
 }))
