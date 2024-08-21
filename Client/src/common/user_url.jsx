@@ -6,17 +6,17 @@ const UserApi = {
 
   },
   userLogin: {
-    url: `/api/users/login`,
+    url: `${userUrl}api/users/login`,
   },
   userDetails: {
-    url: `/api/users/user-details`,
+    url: `${userUrl}api/users/user-details`,
   },
   userUpdate: {
-    url: `/api/users/user-update`,
+    url: `${userUrl}api/users/user-update`,
   },
 
   userSearch: {
-    url: `/api/users/search-user`,
+    url: `${userUrl}api/users/search-user`,
   },
 };
 
